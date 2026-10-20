@@ -68,4 +68,7 @@ CMakeLists.txt.user*
 /dist/
 /00/
 /tools/__pycache__/
+/aqtinstall.log
+/src/config.h
+/src/config_3rd.h
 
