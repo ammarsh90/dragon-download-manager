@@ -122,6 +122,11 @@ File::OpenFlag File::open(const QString &fileName)
 
 /******************************************************************************
  ******************************************************************************/
+qint64 File::bytesWritten() const
+{
+    return m_file ? m_file->pos() : 0;
+}
+
 bool File::isOpen() const
 {
     return m_file && m_file->isOpen();

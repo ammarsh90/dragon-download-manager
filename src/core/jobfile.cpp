@@ -35,11 +35,7 @@ JobFile::JobFile(QObject *parent, ResourceItem *resource)
 
 JobFile::~JobFile()
 {
-    if (m_reply) {
-        m_reply->abort();
-        m_reply->deleteLater();
-        m_reply = nullptr;
-    }
+    releaseReply();
 }
 
 /******************************************************************************
@@ -50,7 +46,10 @@ void JobFile::resume()
 
     this->beginResume();
 
-    auto flag = m_file->open(m_resource);
+    m_resumeOffset = m_file->isOpen() ? m_file->bytesWritten() : 0;
+    m_responseChecked = false;
+    if (m_resumeOffset == 0) m_resumeValidator.clear();
+    auto flag = m_file->isOpen() ? File::Open : m_file->open(m_resource);
 
     if (flag == File::Skip) {
         setState(Skipped);
@@ -65,7 +64,7 @@ void JobFile::resume()
     if (this->checkResume(connected)) {
 
         auto url = m_resource->url_TODO();
-        m_reply = m_scheduler->networkManager()->get(url);
+        m_reply = m_scheduler->networkManager()->get(url, m_resource->referringPage(), m_resumeOffset, m_resumeValidator);
         m_reply->setParent(this);
 
         /* Signals/Slots of QNetworkReply */
@@ -85,23 +84,68 @@ void JobFile::resume()
 
 void JobFile::pause()
 {
-    AbstractJob::pause();
+    if (m_reply && m_file->isOpen()) m_file->write(m_reply->readAll());
+    releaseReply();
+    setBytesReceived(m_file->bytesWritten());
+    setState(Paused);
+    emit changed();
+    finish();
 }
 
 void JobFile::stop()
 {
-    if (m_reply) {
-        m_reply->abort();
-        m_reply->deleteLater();
-        m_reply = nullptr;
-    }
+    releaseReply();
     AbstractJob::stop();
+}
+
+void JobFile::releaseReply()
+{
+    if (!m_reply) return;
+    m_reply->disconnect(this);
+    m_reply->abort();
+    m_reply->deleteLater();
+    m_reply = nullptr;
+}
+
+bool JobFile::prepareResponse()
+{
+    if (m_responseChecked || !m_reply) return true;
+    const auto status = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (status != 200 && status != 206) return true;
+    m_responseChecked = true;
+    if (m_resumeOffset > 0 && status == 200) {
+        // The server ignored Range or its validator changed: replace the partial copy.
+        m_file->cancel();
+        if (m_file->open(m_resource) != File::Open) {
+            setErrorMessage(tr("Cannot reopen the download file."));
+            setState(FileError);
+            releaseReply();
+            finish();
+            return false;
+        }
+        m_resumeOffset = 0;
+        setBytesReceived(0);
+    } else if (m_resumeOffset > 0 && !m_reply->rawHeader("Content-Range").startsWith(
+                   "bytes " + QByteArray::number(m_resumeOffset) + "-")) {
+        setErrorMessage(tr("The server returned an invalid resume range."));
+        setState(NetworkError);
+        releaseReply();
+        m_file->cancel();
+        finish();
+        return false;
+    }
+    auto validator = m_reply->rawHeader("ETag");
+    if (validator.startsWith("W/")) validator.clear();
+    if (validator.isEmpty()) validator = m_reply->rawHeader("Last-Modified");
+    if (!validator.isEmpty()) m_resumeValidator = validator;
+    return true;
 }
 
 /******************************************************************************
  ******************************************************************************/
 void JobFile::onMetaDataChanged()
 {
+    if (!prepareResponse()) return;
     if (m_reply) {
         auto rawNewUrl = m_reply->header(QNetworkRequest::LocationHeader);
         if (rawNewUrl.isValid()) {
@@ -140,8 +184,10 @@ void JobFile::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
                      QString::number(bytesReceived),
                      QString::number(bytesTotal)));
     }
-    updateInfo(static_cast<qsizetype>(bytesReceived),
-               static_cast<qsizetype>(bytesTotal));
+    // Throughput belongs to this connection; progress includes the retained prefix.
+    updateInfo(static_cast<qsizetype>(bytesReceived), static_cast<qsizetype>(bytesTotal));
+    setBytesReceived(static_cast<qsizetype>(m_resumeOffset + bytesReceived));
+    setBytesTotal(bytesTotal >= 0 ? static_cast<qsizetype>(m_resumeOffset + bytesTotal) : -1);
 }
 
 void JobFile::onRedirected(const QUrl &url)
@@ -276,6 +322,7 @@ void JobFile::onErrorOccurred(QNetworkReply::NetworkError error)
 
 void JobFile::onReadyRead()
 {
+    if (!prepareResponse()) return;
     if (!m_reply || !m_file) {
         return;
     }

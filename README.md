@@ -10,7 +10,8 @@ Dragon Download Manager is a download manager customized for Brami Group and ins
 ## Features
 
 - Add a direct HTTP/HTTPS link, choose a file name and start downloading.
-- Queue a download for later, pause, resume, stop and open downloaded files.
+- Queue a download for later, pause, stop and open downloaded files.
+- Resume paused HTTP/HTTPS downloads in the current session using byte ranges when supported by the server; safely restart when ranges are ignored.
 - Clear, labeled toolbar and readable light/dark interfaces.
 - Simple settings for the download folder, appearance and simultaneous downloads.
 - Normal Windows taskbar behavior when minimized; no notification-area icon.

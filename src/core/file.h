@@ -46,6 +46,7 @@ public:
     void cancel();
 
     bool isOpen() const;
+    qint64 bytesWritten() const;
     bool rename(ResourceItem *resource);
     QString customFileName() const;
 

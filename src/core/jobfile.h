@@ -54,6 +54,12 @@ private:
     Scheduler *m_scheduler = nullptr;
     QNetworkReply *m_reply = nullptr;
 
+    qint64 m_resumeOffset = 0;
+    QByteArray m_resumeValidator;
+    bool m_responseChecked = false;
+    void releaseReply();
+    bool prepareResponse();
+
     QString statusToHttp(QNetworkReply::NetworkError error);
 };
 

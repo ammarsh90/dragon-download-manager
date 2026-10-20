@@ -17,6 +17,7 @@
 #define CORE_NETWORK_MANAGER_H
 
 #include <QtCore/QObject>
+#include <QtCore/QByteArray>
 #include <QtCore/QString>
 
 class Settings;
@@ -35,7 +36,7 @@ public:
     Settings* settings() const;
     void setSettings(Settings *settings);
 
-    QNetworkReply* get(const QUrl &url, const QString &referer = {});
+    QNetworkReply* get(const QUrl &url, const QString &referer = {}, qint64 rangeStart = 0, const QByteArray &validator = {});
 
     static QStringList proxyTypeNames();
 
