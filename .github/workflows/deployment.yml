@@ -429,10 +429,13 @@ jobs:
 
     - name: Test Project
       continue-on-error: true
+      timeout-minutes: 5
+      env:
+        QT_QPA_PLATFORM: offscreen
       working-directory: "${{env.Project_BUILD_DIR}}"
       run: |
            ctest -N  # -N gets the list of all the tests in CTest
-           ctest . --verbose
+           ctest . --verbose --timeout 20 --parallel 4
 
     - name: Install Project
       working-directory: "${{env.Project_BUILD_DIR}}"
