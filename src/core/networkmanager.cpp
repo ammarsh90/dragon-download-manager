@@ -104,15 +104,17 @@ void NetworkManager::setNetworkSettings(Settings *settings)
 
 /******************************************************************************
  ******************************************************************************/
-QNetworkReply* NetworkManager::get(const QUrl &url, const QString &referer, qint64 rangeStart, const QByteArray &validator)
+QNetworkReply* NetworkManager::get(const QUrl &url, const QString &referer, qint64 rangeStart, const QByteArray &validator, qint64 rangeEnd)
 {
     Q_ASSERT(m_networkAccessManager);
 
     QNetworkRequest request;
     request.setUrl(url);
-    if (rangeStart > 0) {
-        request.setRawHeader("Accept-Encoding", "identity");
-        request.setRawHeader("Range", "bytes=" + QByteArray::number(rangeStart) + "-");
+    request.setRawHeader("Accept-Encoding", "identity");
+    request.setTransferTimeout(30000);
+    if (rangeStart > 0 || rangeEnd >= 0) {
+        request.setRawHeader("Range", "bytes=" + QByteArray::number(rangeStart) + "-"
+                             + (rangeEnd >= 0 ? QByteArray::number(rangeEnd) : QByteArray()));
         if (!validator.isEmpty()) request.setRawHeader("If-Range", validator);
     }
 

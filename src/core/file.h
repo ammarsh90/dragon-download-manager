@@ -39,9 +39,9 @@ public:
 
     static void setFileAccessManager(FileAccessManager *manager);
 
-    OpenFlag open(ResourceItem *resource);
+    OpenFlag open(ResourceItem *resource, bool overwriteApproved = false);
 
-    void write(const QByteArray &data);
+    bool write(const QByteArray &data);
     bool commit();
     void cancel();
 
@@ -58,7 +58,7 @@ public:
 private:
     QSaveFile *m_file = nullptr;
 
-    inline OpenFlag open(const QString &fileName);
+    inline OpenFlag open(const QString &fileName, bool overwriteApproved = false);
     static inline QString nextAvailableName(const QString &name);
 };
 

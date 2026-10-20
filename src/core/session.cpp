@@ -189,7 +189,8 @@ static inline AbstractJob* readJob(const QJsonObject &json, Scheduler *scheduler
     job->setState(intToState(json["state"].toInt()));
     job->setBytesReceived(static_cast<qsizetype>(json["bytesReceived"].toInteger()));
     job->setBytesTotal(static_cast<qsizetype>(json["bytesTotal"].toInteger()));
-    job->setMaxConnections(json["maxConnections"].toInt());
+    job->setMaxConnections(json["maxConnections"].toInt(8));
+    if (auto *file = qobject_cast<JobFile *>(job)) file->setSpeedLimit(json["speedLimitKiB"].toInt());
     job->setLog(json["log"].toString());
 
     return job;
@@ -219,6 +220,7 @@ static inline void writeJob(const AbstractJob *job, QJsonObject &json)
     json["bytesReceived"] = static_cast<qsizetype>(job->bytesReceived());
     json["bytesTotal"] = static_cast<qsizetype>(job->bytesTotal());
     json["maxConnections"] = job->maxConnections();
+    if (const auto *file = qobject_cast<const JobFile *>(job)) json["speedLimitKiB"] = file->speedLimit();
     json["log"] = job->log();
 }
 

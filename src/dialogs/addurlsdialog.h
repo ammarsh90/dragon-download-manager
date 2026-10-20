@@ -18,7 +18,12 @@
 
 #include <QtWidgets/QDialog>
 #include <QtCore/QUrl>
+#include <QtCore/QPointer>
+#include <QtNetwork/QNetworkReply>
+class QTimer;
 
+class AbstractJob;
+class QComboBox;
 class Scheduler;
 class Settings;
 class QLineEdit;
@@ -30,14 +35,23 @@ class AddUrlsDialog : public QDialog
     Q_OBJECT
 public:
     explicit AddUrlsDialog(const QString &text, Scheduler *scheduler, Settings *settings, QWidget *parent = nullptr);
+    ~AddUrlsDialog() override;
     void accept() override;
     void acceptPaused();
+signals:
+    void downloadAdded(AbstractJob *job, bool started);
 private:
     Scheduler *m_scheduler;
     Settings *m_settings;
     QLineEdit *m_url;
     QLineEdit *m_saveAs;
     QLabel *m_validation;
+    QLineEdit *m_description;
+    QComboBox *m_connections;
+    QLabel *m_fileInfo;
+    QTimer *m_metadataTimer;
+    QPointer<QNetworkReply> m_metadataReply;
+    void inspectLink();
     QPushButton *m_start;
     QPushButton *m_later;
     bool m_customPath = false;

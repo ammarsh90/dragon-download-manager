@@ -18,6 +18,7 @@
 
 #include "about.h"
 
+#include "dialogs/downloadprogressdialog.h"
 #include <Constants>
 #include <Core/AbstractJob>
 #include <Core/Scheduler>
@@ -157,7 +158,10 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent)
 
     connect(ui->queueView, SIGNAL(dataChanged()), this, SLOT(onDataChanged()));
     connect(ui->queueView, SIGNAL(selectionChanged()), this, SLOT(onSelectionChanged()));
-    connect(ui->queueView, SIGNAL(doubleClicked(AbstractJob*)), this, SLOT(openFile(AbstractJob*)));            
+    connect(ui->queueView, &QueueView::doubleClicked, this, [this](AbstractJob *job) {
+        if (job->state() == AbstractJob::Completed) openFile(job);
+        else showDownloadProgress(job);
+    });
 
     /* Torrent Context Manager */
     connect(&torrentContext, &TorrentContext::changed, this, &MainWindow::onTorrentContextChanged);
@@ -212,6 +216,9 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent)
 
 MainWindow::~MainWindow()
 {
+    for (const auto &dialog : std::as_const(m_progressWindows)) if (dialog) delete dialog;
+    m_progressWindows.clear();
+    for (auto *job : m_scheduler->jobs()) disconnect(job, &QObject::destroyed, this, nullptr);
     delete ui;
 }
 
@@ -410,6 +417,8 @@ void MainWindow::setupDownloadInterface()
     for (int column = 0; column < widths.size(); ++column) {
         ui->queueView->setColumnWidth(column, widths.at(column));
     }
+    ui->queueView->setColumnHidden(1, true);
+    ui->queueView->setColumnHidden(3, true);
     ui->queueView->horizontalHeader()->setMinimumSectionSize(65);
 
     m_downloadPages = new QStackedWidget(ui->centralwidget);
@@ -445,11 +454,13 @@ void MainWindow::setupDownloadInterface()
     connect(m_scheduler->model(), &QAbstractItemModel::rowsInserted, this, &MainWindow::refreshDownloadPage);
     connect(m_scheduler->model(), &QAbstractItemModel::rowsRemoved, this, &MainWindow::refreshDownloadPage);
     connect(m_scheduler->model(), &QAbstractItemModel::modelReset, this, &MainWindow::refreshDownloadPage);
+    setupDownloadNavigation();
     refreshDownloadPage();
 }
 
 void MainWindow::refreshDownloadPage()
 {
+    filterDownloads();
     if (m_downloadPages) m_downloadPages->setCurrentIndex(m_scheduler->count() == 0 ? 1 : 0);
 }
 
@@ -605,13 +616,8 @@ void MainWindow::showInformation()
 {
     auto jobs = ui->queueView->selectedJobs();
     if (jobs.count() == 1) {
-        InformationDialog dialog(jobs, this);
-        int answer = dialog.exec();
-        if (answer == QDialog::Accepted) {
-            m_scheduler->activateSnapshot();
-            refreshMenus();
-            refreshTitleAndStatus();
-        }
+        showDownloadProgress(jobs.first());
+        return;
     } else if (jobs.count() > 1) {
         EditionDialog dialog(jobs, this);
         int answer = dialog.exec();
@@ -933,7 +939,13 @@ void MainWindow::addUrls()
 void MainWindow::addUrls(const QString &text)
 {
     AddUrlsDialog dialog(text, m_scheduler, m_settings, this);
-    dialog.exec();
+    QPointer<AbstractJob> added;
+    bool showProgress = false;
+    connect(&dialog, &AddUrlsDialog::downloadAdded, this, [&](AbstractJob *job, bool started) {
+        added = job;
+        showProgress = started;
+    });
+    if (dialog.exec() == QDialog::Accepted && added && showProgress) showDownloadProgress(added);
 }
 
 /******************************************************************************
@@ -942,6 +954,7 @@ void MainWindow::resume()
 {
     for (auto job : ui->queueView->selectedJobs()) {
         m_scheduler->resume(job);
+        showDownloadProgress(job);
     }
 }
 
@@ -979,6 +992,10 @@ void MainWindow::showPreferences()
     simultaneous->setRange(1, 16);
     simultaneous->setValue(m_settings->maxSimultaneousDownloads());
     form->addRow(tr("Simultaneous downloads"), simultaneous);
+    auto *connections = new QComboBox(&dialog);
+    for (int count : {1, 2, 4, 8, 16}) connections->addItem(QString::number(count), count);
+    connections->setCurrentIndex(qMax(0, connections->findData(QSettings().value("Downloads/Connections", 8).toInt())));
+    form->addRow(tr("Connections per file"), connections);
     auto *appearance = new QComboBox(&dialog);
     appearance->addItems({tr("Light"), tr("Dark")});
     appearance->setCurrentIndex(Theme::fromColorScheme(m_settings->theme().value(Theme::ColorScheme).toString()));
@@ -997,6 +1014,7 @@ void MainWindow::showPreferences()
             return;
         }
         QSettings().setValue("Downloads/Folder", folder->text().trimmed());
+        QSettings().setValue("Downloads/Connections", connections->currentData());
         m_settings->setMaxSimultaneousDownloads(simultaneous->value());
         auto theme = m_settings->theme();
         theme.insert(Theme::ColorScheme, Theme::toColorScheme(appearance->currentIndex()));
@@ -1060,6 +1078,7 @@ void MainWindow::aboutWebsite()
  ******************************************************************************/
 void MainWindow::onDataChanged()
 {
+    filterDownloads();
     refreshMenus();
     refreshTitleAndStatus();
     m_scheduler->activateSnapshot();
@@ -1213,7 +1232,9 @@ void MainWindow::refreshMenus()
     ui->actionInformation->setEnabled(hasSelection);
     // --
     ui->actionOpenFile->setEnabled(hasOnlyCompletedSelected);
-    ui->actionRenameFile->setEnabled(hasSelection);
+    bool canRename = hasSelection;
+    for (auto *job : selectedJobs) if (job->isDownloading() || (job->bytesReceived() > 0 && job->state() != AbstractJob::Completed)) canRename = false;
+    ui->actionRenameFile->setEnabled(canRename);
     ui->actionDeleteFile->setEnabled(hasOnlyCompletedSelected);
     ui->actionOpenDirectory->setEnabled(hasOnlyOneSelected);
     // --

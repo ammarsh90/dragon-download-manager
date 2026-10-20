@@ -62,13 +62,13 @@ void File::setFileAccessManager(FileAccessManager *manager)
 /*!
  * \brief Opens the given fileName, returning Open if successful; otherwise Error or Skip.
  */
-File::OpenFlag File::open(ResourceItem *resource)
+File::OpenFlag File::open(ResourceItem *resource, bool overwriteApproved)
 {
     Q_ASSERT(resource);
     auto target = resource->localFileUrl();
     auto fileName = target.toLocalFile();
 
-    auto flag = open(fileName);
+    auto flag = open(fileName, overwriteApproved);
     if (flag == Open && m_file) {
         // A simple Save As path includes its extension; legacy masks supply it separately.
         const bool extensionInMask = resource->mask().isEmpty() || resource->mask().contains("*ext*");
@@ -77,7 +77,7 @@ File::OpenFlag File::open(ResourceItem *resource)
     return flag;
 }
 
-File::OpenFlag File::open(const QString &fileName)
+File::OpenFlag File::open(const QString &fileName, bool overwriteApproved)
 {
     // Check Path
     const QFileInfo fi(fileName);
@@ -88,7 +88,7 @@ File::OpenFlag File::open(const QString &fileName)
     auto safeFileName = fileName;
     if (QFile::exists(safeFileName)) {
 
-        auto option = existingFileOption();
+        auto option = overwriteApproved ? ExistingFileOption::Overwrite : existingFileOption();
 
         while (s_fileAccessManager && option == ExistingFileOption::Ask) {
             option = s_fileAccessManager->aboutToModify(safeFileName);
@@ -98,7 +98,7 @@ File::OpenFlag File::open(const QString &fileName)
             safeFileName = nextAvailableName(fileName);
 
         } else if (option == ExistingFileOption::Overwrite) {
-            QFile::remove(safeFileName);
+            // QSaveFile replaces the original only after a successful commit.
 
         } else if (option == ExistingFileOption::Skip) {
             return Skip;
@@ -199,13 +199,11 @@ void File::setMetadataChangeFileTime(const QDateTime &newDate)
 inline QString File::nextAvailableName(const QString &name)
 {
     const QFileInfo fi(name);
-    auto prefix = QString("%0/%1 (").arg(fi.absolutePath(), fi.baseName());
-    auto suffix = QString(").%0").arg(fi.completeSuffix());
-    auto newFileName = name;
-    int increment = 0;
+    const auto extension = fi.suffix().isEmpty() ? QString() : "." + fi.suffix();
+    QString newFileName;
+    int increment = 1;
     do {
-        newFileName = QString("%0%1%2").arg(prefix, QString::number(increment), suffix);
-        increment++;
+        newFileName = fi.dir().filePath(fi.completeBaseName() + QString(" (%1)").arg(increment++) + extension);
     } while (QFile::exists(newFileName));
     return newFileName;
 }
@@ -216,11 +214,9 @@ inline QString File::nextAvailableName(const QString &name)
  * \brief Writes the given bytes of data to the device.
  * \param data
  */
-void File::write(const QByteArray &data)
+bool File::write(const QByteArray &data)
 {
-    if (m_file) {
-        m_file->write(data);
-    }
+    return m_file && m_file->write(data) == data.size();
 }
 
 /******************************************************************************

@@ -3,6 +3,7 @@ set(MY_SOURCES ${MY_SOURCES}
     ${CMAKE_SOURCE_DIR}/src/dialogs/addcontentdialog.cpp
     ${CMAKE_SOURCE_DIR}/src/dialogs/addstreamdialog.cpp
     ${CMAKE_SOURCE_DIR}/src/dialogs/addtorrentdialog.cpp
+    ${CMAKE_SOURCE_DIR}/src/dialogs/downloadprogressdialog.cpp
     ${CMAKE_SOURCE_DIR}/src/dialogs/addurlsdialog.cpp
     ${CMAKE_SOURCE_DIR}/src/dialogs/batchrenamedialog.cpp
     ${CMAKE_SOURCE_DIR}/src/dialogs/compilerdialog.cpp

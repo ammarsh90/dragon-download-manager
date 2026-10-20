@@ -13,54 +13,36 @@
  * License along with this program; If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CORE_JOB_FILE_H
-#define CORE_JOB_FILE_H
-
+#pragma once
 #include <Core/AbstractJob>
-
-#include <QtCore/QObject>
-#include <QtCore/QString>
-#include <QtCore/QUrl>
-#include <QtNetwork/QNetworkReply>
-
-class File;
+#include <QtCore/QFile>
+#include "segmentedtransfer.h"
 class Scheduler;
 class ResourceItem;
-
-// class QNetworkReply;
 
 class JobFile : public AbstractJob
 {
     Q_OBJECT
-
 public:
     JobFile(QObject *parent, ResourceItem *resource);
     ~JobFile() override;
-
     void resume() override;
     void pause() override;
     void stop() override;
-
-private slots:
-    void onMetaDataChanged();
-    void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
-    void onRedirected(const QUrl &url);
-    void onFinished();
-    void onErrorOccurred(QNetworkReply::NetworkError error);
-    void onReadyRead();
-    void onAboutToClose();
-
+    void rename(const QString &newName) override;
+    QList<SegmentedTransfer::Part> parts() const;
+    bool supportsResume() const;
+    void setSpeedLimit(int kibibytes) { m_transfer->setSpeedLimit(kibibytes); }
+    int speedLimit() const { return m_transfer->speedLimit(); }
+    void setOverwriteApproved(bool approved) { m_overwriteApproved = approved; }
 private:
-    Scheduler *m_scheduler = nullptr;
-    QNetworkReply *m_reply = nullptr;
-
-    qint64 m_resumeOffset = 0;
-    QByteArray m_resumeValidator;
-    bool m_responseChecked = false;
-    void releaseReply();
-    bool prepareResponse();
-
-    QString statusToHttp(QNetworkReply::NetworkError error);
+    Scheduler *m_scheduler;
+    SegmentedTransfer *m_transfer;
+    QFile m_assembly;
+    qint64 m_sessionStart = -1;
+    int m_generation = 0;
+    bool m_overwriteApproved = false;
+    void assemble(const QString &path);
+    void copyNextBlock(int generation);
+    void transferFailed(const QString &message);
 };
-
-#endif // CORE_JOB_FILE_H

@@ -25,6 +25,11 @@ class FileAccessManager;
 class Settings;
 class UpdateChecker;
 class SystemTray;
+class DownloadProgressDialog;
+class QTreeWidget;
+class QLineEdit;
+#include <QtCore/QHash>
+#include <QtCore/QPointer>
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -127,6 +132,9 @@ private:
     Settings *m_settings = nullptr;
     QLabel *m_statusBarLabel = nullptr;
     QStackedWidget *m_downloadPages = nullptr;
+    QTreeWidget *m_downloadCategories = nullptr;
+    QLineEdit *m_downloadSearch = nullptr;
+    QHash<AbstractJob *, QPointer<DownloadProgressDialog>> m_progressWindows;
 #ifdef USE_QT_WINEXTRAS
     QWinTaskbarButton *m_winTaskbarButton = nullptr;
     QWinTaskbarProgress *m_winTaskbarProgress = nullptr;
@@ -139,6 +147,12 @@ private:
 
     void createActions();
     void setupDownloadInterface();
+    void setupDownloadNavigation();
+    void filterDownloads();
+    void showDownloadProgress(AbstractJob *job);
+    void startQueue();
+    void stopAllDownloads();
+    void showDownloadSchedule();
     void refreshDownloadPage();
     void createContextMenu();
     void createStatusbar();

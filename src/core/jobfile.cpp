@@ -14,323 +14,100 @@
  */
 
 #include "jobfile.h"
-
-#include <Core/Scheduler>
 #include <Core/File>
-#include <Core/NetworkManager>
 #include <Core/ResourceItem>
-#include <Core/Settings>
-
-#include <QtNetwork/QNetworkReply>
-
-using namespace Qt::Literals::StringLiterals;
-
+#include <Core/Scheduler>
+#include <QtCore/QSettings>
+#include <QtCore/QTimer>
 
 JobFile::JobFile(QObject *parent, ResourceItem *resource)
-    : AbstractJob(parent, resource)
-    , m_scheduler((Scheduler*)parent)
-    , m_reply(nullptr)
+    : AbstractJob(parent, resource), m_scheduler(static_cast<Scheduler *>(parent)),
+      m_transfer(new SegmentedTransfer(m_scheduler->networkManager(), this))
 {
+    setMaxConnections(QSettings().value("Downloads/Connections", 8).toInt());
+    connect(m_transfer, &SegmentedTransfer::progress, this, [this](qint64 received, qint64 total) {
+        if (m_sessionStart < 0) m_sessionStart = received;
+        updateInfo(qMax<qint64>(0, received - m_sessionStart), total);
+        setBytesReceived(received);
+        setBytesTotal(total);
+    });
+    connect(m_transfer, &SegmentedTransfer::ready, this, &JobFile::assemble);
+    connect(m_transfer, &SegmentedTransfer::failed, this, &JobFile::transferFailed);
 }
 
-JobFile::~JobFile()
-{
-    releaseReply();
-}
+JobFile::~JobFile() { m_transfer->pause(); }
 
-/******************************************************************************
- ******************************************************************************/
 void JobFile::resume()
 {
-    logInfo(QString("Resume '%0' (destination: '%1').").arg(m_resource->url(), localFullFileName()));
-
-    this->beginResume();
-
-    m_resumeOffset = m_file->isOpen() ? m_file->bytesWritten() : 0;
-    m_responseChecked = false;
-    if (m_resumeOffset == 0) m_resumeValidator.clear();
-    auto flag = m_file->isOpen() ? File::Open : m_file->open(m_resource);
-
-    if (flag == File::Skip) {
-        setState(Skipped);
-        onAboutToClose();
-        onFinished();
-        return;
-    }
-
-    auto connected = flag == File::Open;
-
-    /* Prepare the connection, try to contact the server */
-    if (this->checkResume(connected)) {
-
-        auto url = m_resource->url_TODO();
-        m_reply = m_scheduler->networkManager()->get(url, m_resource->referringPage(), m_resumeOffset, m_resumeValidator);
-        m_reply->setParent(this);
-
-        /* Signals/Slots of QNetworkReply */
-        connect(m_reply, SIGNAL(metaDataChanged()), this, SLOT(onMetaDataChanged()));
-        connect(m_reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(onDownloadProgress(qint64,qint64)));
-        connect(m_reply, SIGNAL(redirected(QUrl)), this, SLOT(onRedirected(QUrl)));
-        connect(m_reply, SIGNAL(errorOccurred(QNetworkReply::NetworkError)), this, SLOT(onErrorOccurred(QNetworkReply::NetworkError)));
-        connect(m_reply, SIGNAL(finished()), this, SLOT(onFinished()));
-
-        /* Signals/Slots of QIODevice */
-        connect(m_reply, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
-        connect(m_reply, SIGNAL(aboutToClose()), this, SLOT(onAboutToClose()));
-
-        this->tearDownResume();
-    }
+    if (isDownloading()) return;
+    beginResume();
+    setErrorMessage({});
+    m_sessionStart = -1;
+    const auto flag = m_file->isOpen() ? File::Open : m_file->open(m_resource, m_overwriteApproved);
+    if (flag == File::Skip) { setState(Skipped); finish(); return; }
+    if (!checkResume(flag == File::Open)) return;
+    tearDownResume();
+    m_transfer->start(m_resource->url_TODO(), m_resource->referringPage(),
+                      localFullFileName(), maxConnections());
 }
 
 void JobFile::pause()
 {
-    if (m_reply && m_file->isOpen()) m_file->write(m_reply->readAll());
-    releaseReply();
-    setBytesReceived(m_file->bytesWritten());
+    ++m_generation;
+    m_assembly.close();
+    m_transfer->pause();
+    m_file->cancel();
     setState(Paused);
-    emit changed();
     finish();
 }
 
-void JobFile::stop()
+void JobFile::stop() { if (state() != Completed) pause(); }
+
+void JobFile::rename(const QString &newName)
 {
-    releaseReply();
-    AbstractJob::stop();
+    // Cache identity includes the destination. Avoid losing partial data after a rename.
+    if (bytesReceived() > 0 && state() != Completed) return;
+    AbstractJob::rename(newName);
 }
 
-void JobFile::releaseReply()
+QList<SegmentedTransfer::Part> JobFile::parts() const { return m_transfer->parts(); }
+bool JobFile::supportsResume() const { return m_transfer->supportsResume(); }
+
+void JobFile::assemble(const QString &path)
 {
-    if (!m_reply) return;
-    m_reply->disconnect(this);
-    m_reply->abort();
-    m_reply->deleteLater();
-    m_reply = nullptr;
+    m_assembly.setFileName(path);
+    if (!m_assembly.open(QIODevice::ReadOnly)) { transferFailed(m_assembly.errorString()); return; }
+    setState(Endgame);
+    const int generation = ++m_generation;
+    QTimer::singleShot(0, this, [this, generation] { copyNextBlock(generation); });
 }
 
-bool JobFile::prepareResponse()
+void JobFile::copyNextBlock(int generation)
 {
-    if (m_responseChecked || !m_reply) return true;
-    const auto status = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    if (status != 200 && status != 206) return true;
-    m_responseChecked = true;
-    if (m_resumeOffset > 0 && status == 200) {
-        // The server ignored Range or its validator changed: replace the partial copy.
-        m_file->cancel();
-        if (m_file->open(m_resource) != File::Open) {
-            setErrorMessage(tr("Cannot reopen the download file."));
-            setState(FileError);
-            releaseReply();
-            finish();
-            return false;
-        }
-        m_resumeOffset = 0;
-        setBytesReceived(0);
-    } else if (m_resumeOffset > 0 && !m_reply->rawHeader("Content-Range").startsWith(
-                   "bytes " + QByteArray::number(m_resumeOffset) + "-")) {
-        setErrorMessage(tr("The server returned an invalid resume range."));
-        setState(NetworkError);
-        releaseReply();
-        m_file->cancel();
-        finish();
-        return false;
-    }
-    auto validator = m_reply->rawHeader("ETag");
-    if (validator.startsWith("W/")) validator.clear();
-    if (validator.isEmpty()) validator = m_reply->rawHeader("Last-Modified");
-    if (!validator.isEmpty()) m_resumeValidator = validator;
-    return true;
-}
-
-/******************************************************************************
- ******************************************************************************/
-void JobFile::onMetaDataChanged()
-{
-    if (!prepareResponse()) return;
-    if (m_reply) {
-        auto rawNewUrl = m_reply->header(QNetworkRequest::LocationHeader);
-        if (rawNewUrl.isValid()) {
-            auto oldUrl = m_resource->url_TODO();
-            auto newUrl = rawNewUrl.toUrl();
-            /* Check if the metadata change is a redirection */
-            if (newUrl.isValid() && oldUrl.isValid() && oldUrl != newUrl) {
-                logInfo(QString("HTTP redirect: '%0' to '%1'.").arg(oldUrl.toString(), newUrl.toString()));
-            }
-        }
-        auto settings = m_scheduler->settings();
-        auto rawTime = m_reply->header(QNetworkRequest::LastModifiedHeader);
-        if (settings && rawTime.isValid()) {
-            auto time = rawTime.toDateTime();
-            if (settings->isRemoteCreationTimeEnabled()) {
-                m_file->setCreationFileTime(time);
-            }
-            if (settings->isRemoteLastModifiedTimeEnabled()) {
-                m_file->setLastModifiedFileTime(time);
-            }
-            if (settings->isRemoteAccessTimeEnabled()) {
-                m_file->setAccessFileTime(time);
-            }
-            if (settings->isRemoteMetadataChangeTimeEnabled()) {
-                m_file->setMetadataChangeFileTime(time);
-            }
-        }
-    }
-}
-
-void JobFile::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
-{
-    if (m_reply && bytesReceived > 0 && bytesTotal > 0) {
-        logInfo(QString("Downloaded '%0' (%1 of %2 bytes).")
-                .arg(m_reply->url().toString(),
-                     QString::number(bytesReceived),
-                     QString::number(bytesTotal)));
-    }
-    // Throughput belongs to this connection; progress includes the retained prefix.
-    updateInfo(static_cast<qsizetype>(bytesReceived), static_cast<qsizetype>(bytesTotal));
-    setBytesReceived(static_cast<qsizetype>(m_resumeOffset + bytesReceived));
-    setBytesTotal(bytesTotal >= 0 ? static_cast<qsizetype>(m_resumeOffset + bytesTotal) : -1);
-}
-
-void JobFile::onRedirected(const QUrl &url)
-{
-    if (m_reply) {
-        logInfo(QString("HTTP redirect: redirected '%0' to '%1'.")
-                .arg(m_reply->url().toString(), url.toString()));
-    }
-}
-
-void JobFile::onFinished()
-{
-    logInfo(QString("Finished (%0) '%1'.").arg(state_c_str(), localFullFileName()));
-    switch (state()) {
-    case Idle:
-    case Preparing:
-    case Connecting:
-    case DownloadingMetadata:
-    case Downloading:
-    case Endgame:
-    case Completed:
-    case Seeding:
-        if (bytesTotal() == 0) {
-            /*
-             * Trick:
-             * Server can close invalid connection by sending an empty reply.
-             * In this case, QNetworkAccessManager triggers finished(),
-             * but doesn't trigger error().
-             * Here we verify the size of the received file and set the error.
-             */
-            setState(NetworkError);
-            setBytesReceived(0);
-            // setBytesTotal(0);
-            m_file->cancel();
-            emit changed();
-        } else {
-            /* Here, finish the operation if downloading. */
-            /* If network error or file error, just ignore */
-            bool commited = m_file->commit();
-            preFinish(commited);
-        }
-        break;
-
-    case Paused:
-    case Stopped:
-    case Skipped:
-    case NetworkError:
-    case FileError:
-        setBytesReceived(0);
-        setBytesTotal(0);
-        m_file->cancel();
-        emit changed();
-        break;
-    }
-    if (m_reply) {
-        m_reply->deleteLater();
-        m_reply = nullptr;
-    }
-    this->finish();
-}
-
-QString JobFile::statusToHttp(QNetworkReply::NetworkError error)
-{
-    /*
-     * See QNetworkReply::NetworkError Documentation for conversion
-     *
-     * In particular:
-     * QNetworkReply::NetworkError
-     *      QNetworkReplyWasmImplPrivate::statusCodeFromHttp(
-     *          int httpStatusCode, const QUrl &url)
-     */
-    switch (error) {
-    case QNetworkReply::NoError:   return tr("No Error");
-
-        // network layer errors [relating to the destination server] (1-99):
-    case QNetworkReply::ConnectionRefusedError:           return tr("3xx Redirect connection refused");
-    case QNetworkReply::RemoteHostClosedError:            return tr("3xx Redirect remote host closed");
-    case QNetworkReply::HostNotFoundError:                return tr("3xx Redirect host not found");
-    case QNetworkReply::TimeoutError:                     return tr("3xx Redirect timeout");
-    case QNetworkReply::OperationCanceledError:           return tr("3xx Redirect operation canceled");
-    case QNetworkReply::SslHandshakeFailedError:          return tr("3xx Redirect SSL handshake failed");
-    case QNetworkReply::TemporaryNetworkFailureError:     return tr("3xx Redirect temporary network failure");
-    case QNetworkReply::NetworkSessionFailedError:        return tr("3xx Redirect network session failed");
-    case QNetworkReply::BackgroundRequestNotAllowedError: return tr("3xx Redirect background request not allowed");
-    case QNetworkReply::TooManyRedirectsError:            return tr("3xx Too many redirects");
-    case QNetworkReply::InsecureRedirectError:            return tr("3xx Insecure redirect");
-    case QNetworkReply::UnknownNetworkError:              return tr("3xx Unknown redirect error");
-
-        // proxy errors (101-199):
-    case QNetworkReply::ProxyConnectionRefusedError :     return tr("5xx Proxy connection refused");
-    case QNetworkReply::ProxyConnectionClosedError:       return tr("5xx Proxy connection closed");
-    case QNetworkReply::ProxyNotFoundError:               return tr("5xx Proxy not found");
-    case QNetworkReply::ProxyTimeoutError:                return tr("504 Proxy timeout error");
-    case QNetworkReply::ProxyAuthenticationRequiredError: return tr("407 Proxy authentication required");
-    case QNetworkReply::UnknownProxyError:                return tr("5xx Unknown proxy error");
-
-        // content errors (201-299):
-    case QNetworkReply::ContentAccessDenied:                return tr("403 Access denied");
-    case QNetworkReply::ContentOperationNotPermittedError:  return tr("405 Method not allowed");
-    case QNetworkReply::ContentNotFoundError:               return tr("404 Not found");
-    case QNetworkReply::AuthenticationRequiredError:        return tr("401 Authorization required");
-    case QNetworkReply::ContentReSendError:     return tr("4xx Resend error");
-    case QNetworkReply::ContentConflictError:   return tr("409 Conflict");
-    case QNetworkReply::ContentGoneError:       return tr("410 Content no longer available");
-    case QNetworkReply::UnknownContentError:    return tr("4xx Unknown content error");
-
-        // protocol errors (301-399):
-    case QNetworkReply::ProtocolUnknownError: return tr("4xx Unknown protocol error");
-    case QNetworkReply::ProtocolInvalidOperationError:  return tr("400 Bad request");
-    case QNetworkReply::ProtocolFailure:     return tr("4xx Protocol failure");
-
-        // Server side errors (401-499):
-    case QNetworkReply::InternalServerError:          return tr("500 Internal server error");
-    case QNetworkReply::OperationNotImplementedError: return tr("501 Server does not support this functionality");
-    case QNetworkReply::ServiceUnavailableError:      return tr("503 Service unavailable");
-    case QNetworkReply::UnknownServerError:           return tr("5xx Unknown server error");
-    }
-    Q_UNREACHABLE();
-}
-
-void JobFile::onErrorOccurred(QNetworkReply::NetworkError error)
-{
-    /// \todo Use instead: auto reply = qobject_cast<QNetworkReply*>(sender());
-    if (m_reply) {
-        logInfo(QString("Error '%0': '%1'.").arg(m_reply->url().toString(),m_reply->errorString()));
-    }
-    m_file->cancel();
-    auto httpError = statusToHttp(error);
-    setErrorMessage(httpError);
-    setState(NetworkError);
-}
-
-void JobFile::onReadyRead()
-{
-    if (!prepareResponse()) return;
-    if (!m_reply || !m_file) {
+    if (generation != m_generation || !m_assembly.isOpen()) return;
+    const auto data = m_assembly.read(1024 * 1024);
+    if (m_assembly.error() != QFileDevice::NoError || !m_file->write(data)) {
+        transferFailed(tr("Cannot save the completed file. Check free disk space and folder permissions."));
         return;
     }
-    QByteArray data = m_reply->readAll();
-    m_file->write(data);
+    if (!m_assembly.atEnd()) {
+        QTimer::singleShot(0, this, [this, generation] { copyNextBlock(generation); });
+        return;
+    }
+    m_assembly.close();
+    const bool committed = m_file->commit();
+    if (committed) m_transfer->discard();
+    else setErrorMessage(tr("Cannot replace the destination file. The partial download is retained."));
+    preFinish(committed);
+    finish();
 }
 
-void JobFile::onAboutToClose()
+void JobFile::transferFailed(const QString &message)
 {
-    logInfo(QString("Finished (%0) '%1'.").arg(state_c_str(), localFullFileName()));
+    ++m_generation;
+    m_assembly.close();
+    m_file->cancel();
+    setErrorMessage(message);
+    setState(NetworkError);
+    finish();
 }

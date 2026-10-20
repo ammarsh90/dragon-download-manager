@@ -1,53 +1,44 @@
-<div align="center">
-  <img src="src/resources/logo/icon128.png" alt="Dragon Download Manager" width="112" />
-  <h1>Dragon Download Manager</h1>
-  <p><strong>A C++ and Qt download manager by Brami Group</strong></p>
-  <p>A clear download workflow, light and dark themes, and a gold Chinese dragon identity.</p>
-</div>
+# Dragon Download Manager
 
-Dragon Download Manager is a download manager customized for Brami Group and inspired by [mobile-dragon.net](https://mobile-dragon.net/), with a gold Chinese dragon identity and browser integration.
+A C++ / Qt 6 download manager by **Brami Group**. Gold and charcoal branding, a readable light theme, and a direct desktop download workflow.
 
-## Features
+[Website](https://mobile-dragon.net/) · [Windows releases](https://github.com/ammarsh90/dragon-download-manager/releases)
 
-- Add a direct HTTP/HTTPS link, choose a file name and start downloading.
-- Queue a download for later, pause, stop and open downloaded files.
-- Resume paused HTTP/HTTPS downloads in the current session using byte ranges when supported by the server; safely restart when ranges are ignored.
-- Clear, labeled toolbar and readable light/dark interfaces.
-- Simple settings for the download folder, appearance and simultaneous downloads.
-- Normal Windows taskbar behavior when minimized; no notification-area icon.
-- Browser integration through the inherited WebExtensions.
+## 1.2 preview
 
-## Interface
+The new segmented engine has been compiled and its interface previewed. Behavioral network checks have not been run for this version; the release is marked as a preview. The previous 1.1.1 release remains available.
 
-![Main window](screenshots/v1.1.0-main-light.png)
+## Download workflow
 
-![Add a download](screenshots/v1.1.0-add-light.png)
+1. Choose **Add URL**, paste a direct HTTP/HTTPS link, and choose the full file name.
+2. Select **1, 2, 4, 8 or 16** connections, then **Start download** or **Download later**.
+3. A separate progress window shows the file, size, rate, remaining time and individual connections, with an adjustable per-file speed limit.
+4. Pause and resume from that window or the main list. **Background** closes the window while the download continues.
+5. When a name exists, keep both with a numbered name, change the name, replace the existing file, or open the queued download.
 
-## Technology
+The main window includes categories, search, Start queue, Stop all and a basic timed queue start. Normal minimization stays in the Windows taskbar.
 
-- C++ with the Qt 6 framework.
-- CMake build system.
-- Cross-platform source inherited from ArrowDL.
+## Download engine
 
-## Build
+Range-capable servers with a stable strong ETag or Last-Modified validator can use concurrent byte ranges and recover saved partial data after the application restarts. Small files use fewer connections. A server that ignores ranges falls back to a single full transfer. Without a trustworthy validator, previous partial data is restarted to avoid combining different versions. Temporary payload and checkpoint files are stored under the application data directory. Saving the final destination uses QSaveFile, preserving an existing file until replacement succeeds.
 
-Windows downloads are published on the [Releases page](https://github.com/ammarsh90/dragon-download-manager/releases). Choose the x64 installer or extract the portable ZIP and run `DragonDownloadManager.exe`.
+This project does not claim full IDM feature parity. See the [feature study](docs/IDM_STUDY.md) for implemented features and remaining gaps.
 
-The binaries are unsigned. The release includes `SHA256SUMS.txt` for checking downloaded files.
+## Documentation
 
-Install the dependencies required by the upstream project, then configure and build with CMake:
+- [User guide](docs/USER_GUIDE.md)
+- [IDM feature and interface study](docs/IDM_STUDY.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Build instructions](docs/BUILD.md)
 
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
-```
+## Interface preview
 
-The Windows release executable is named `DragonDownloadManager.exe`. Build dependencies include Qt 6.5.3, a compatible MinGW compiler, Boost, OpenSSL 3 and libtorrent-rasterbar. The Windows workflow in `.github/workflows/deployment.yml` builds the application and installer.
+![Main window](screenshots/v1.2.0-main.png)
 
-`tools/build_windows.ps1` reproduces the local build with dependencies in `.deps` and CMake/Ninja in `.build-tools` (see its parameters for alternate paths). It was used with Qt 6.5.3, MinGW 13.1, Boost 1.84 and OpenSSL 3.0.16.
+![Download file info](screenshots/v1.2.0-add.png)
 
-## Branding and attribution
+[Progress window preview](screenshots/v1.2.0-progress-preview.png) uses an illustrative paused file, not a measured download.
 
-The application name, metadata, theme, and new Dragon Download Manager artwork are branded for Brami Group. The program is derived from ArrowDL by Sébastien Vavassori; original copyright notices and the GNU LGPL v3 license are retained. See [LICENSE.md](LICENSE.md) and [BRANDING_LICENSE.md](BRANDING_LICENSE.md).
+## License and attribution
 
-The original ArrowDL logo source is retained in `src/resources/logo/ArrowDL.svg` with its separate artwork license. The application uses the custom Dragon Download Manager icon set instead.
+Derived from [ArrowDL](https://github.com/arrowdl/arrowdl) by Sébastien Vavassori. Original source copyright notices are retained. Application code is distributed under [GNU LGPL v3](LICENSE.txt). [Branding attribution](BRANDING_LICENSE.txt) is separate. Third-party licenses remain in their respective directories. Windows binaries are unsigned.

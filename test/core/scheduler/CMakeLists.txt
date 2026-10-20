@@ -18,6 +18,8 @@ set(MY_TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/src/core/fileaccessmanager.cpp
     ${CMAKE_SOURCE_DIR}/src/core/fileutils.cpp
     ${CMAKE_SOURCE_DIR}/src/core/format.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/segmentedtransfer.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/transfercheckpoint.cpp
     ${CMAKE_SOURCE_DIR}/src/core/jobfile.cpp
     ${CMAKE_SOURCE_DIR}/src/core/jobstream.cpp
     ${CMAKE_SOURCE_DIR}/src/core/jobtorrent.cpp
@@ -46,6 +48,7 @@ set(MY_TEST_HEADERS
     ${CMAKE_SOURCE_DIR}/src/core/fileaccessmanager.h
     ${CMAKE_SOURCE_DIR}/src/core/fileutils.h
     ${CMAKE_SOURCE_DIR}/src/core/format.h
+    ${CMAKE_SOURCE_DIR}/src/core/segmentedtransfer.h
     ${CMAKE_SOURCE_DIR}/src/core/jobfile.h
     ${CMAKE_SOURCE_DIR}/src/core/jobstream.h
     ${CMAKE_SOURCE_DIR}/src/core/jobtorrent.h

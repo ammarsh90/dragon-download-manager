@@ -36,7 +36,7 @@ public:
     Settings* settings() const;
     void setSettings(Settings *settings);
 
-    QNetworkReply* get(const QUrl &url, const QString &referer = {}, qint64 rangeStart = 0, const QByteArray &validator = {});
+    QNetworkReply* get(const QUrl &url, const QString &referer = {}, qint64 rangeStart = 0, const QByteArray &validator = {}, qint64 rangeEnd = -1);
 
     static QStringList proxyTypeNames();
 

@@ -55,7 +55,7 @@ ExistingFileOption FileAccessManager::aboutToModify(const QString &filename)
     QPushButton *renameButton = msgBox.addButton(tr("Rename"), QMessageBox::ActionRole);
     QPushButton *overwriteButton = msgBox.addButton(tr("Overwrite"), QMessageBox::ActionRole);
     QPushButton *skipButton = msgBox.addButton(tr("Skip"), QMessageBox::ActionRole);
-    msgBox.setDefaultButton(skipButton);
+    msgBox.setDefaultButton(renameButton);
 
     static bool dontAskAgain = false;
     QCheckBox *cb = new QCheckBox("Don't ask again");
@@ -65,7 +65,7 @@ ExistingFileOption FileAccessManager::aboutToModify(const QString &filename)
     });
 
     msgBox.exec();
-    ExistingFileOption answer = ExistingFileOption::Ask;
+    ExistingFileOption answer = ExistingFileOption::Skip;
 
     if (msgBox.clickedButton() == renameButton) {
         answer = ExistingFileOption::Rename;

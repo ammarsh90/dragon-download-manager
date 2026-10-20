@@ -1,0 +1,25 @@
+# Architecture
+
+## Boundaries
+
+- `MainWindow` owns navigation, categories, search and queue actions. `mainwindowdownloads.cpp` contains this download-focused interaction layer.
+- `AddUrlsDialog` validates input, resolves name conflicts against disk and unfinished jobs, and appends a `JobFile`.
+- `DownloadProgressDialog` observes an `AbstractJob`. Its QPointer and the job destruction connection prevent stale job references.
+- `Scheduler` owns jobs, concurrency and session snapshots. `Session` retains the selected connection count and full destination name.
+- `JobFile` bridges a `SegmentedTransfer` to the existing scheduler API and atomically commits the final file using `File` / QSaveFile.
+- `SegmentedTransfer` handles the HTTP probe, validated ranges, retries, per-connection progress and bounded reply buffers. `transfercheckpoint.cpp` handles durable metadata.
+- `NetworkManager` supplies configured user agent, proxy, TLS, referrer, redirect policy and request timeout to all requests.
+
+## Data safety
+
+A SHA-256 of the original URL and exact destination names a private application-data cache directory. It contains `payload.part` plus an atomically saved `state.json`. Each segment records its start, end and successfully written length. Payload is flushed before its checkpoint is committed. Resume probes the remote representation first and verifies size and validator before trusting cached ranges. Response Content-Range and validators are checked before writing bytes. A full HTTP 200 body is never appended to a range.
+
+The final destination uses a separate QSaveFile. Copying occurs in 1 MiB event-loop steps to keep the UI responsive. Only after commit succeeds are the two transfer cache files removed. The original destination is retained until successful replacement. Final copying temporarily requires disk space for both cache and destination.
+
+## Concurrency
+
+Qt network requests and disk writes run in the GUI event loop; there are no shared writable files across worker threads. Each response writes only its assigned range. QPointer guards reply lifetime. Generation counters invalidate delayed retries and assembly callbacks when paused or restarted.
+
+## Known limitations
+
+Fixed segments, no dynamic redistribution. Cross-request recovery requires strong ETag or Last-Modified. Single-stream servers restart from the beginning. Cache files may remain after removing an unfinished job; they are intentionally retained rather than deleted recursively. The basic scheduled start requires the app to remain running.

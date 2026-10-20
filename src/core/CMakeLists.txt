@@ -7,6 +7,8 @@ set(MY_SOURCES ${MY_SOURCES}
     ${CMAKE_SOURCE_DIR}/src/core/fileutils.cpp
     ${CMAKE_SOURCE_DIR}/src/core/format.cpp
     ${CMAKE_SOURCE_DIR}/src/core/htmlparser.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/segmentedtransfer.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/transfercheckpoint.cpp
     ${CMAKE_SOURCE_DIR}/src/core/jobfile.cpp
     ${CMAKE_SOURCE_DIR}/src/core/jobstream.cpp
     ${CMAKE_SOURCE_DIR}/src/core/jobtorrent.cpp

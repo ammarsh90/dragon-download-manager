@@ -34,7 +34,7 @@ static QString buildAbout(const QString &paragraphDelimiter)
                    paragraphDelimiter +
                    QObject::tr("Based on ArrowDL by Sébastien Vavassori; original project copyrights are retained.") +
                    paragraphDelimiter +
-                   QObject::tr("Licensed under the GNU Lesser General Public License, version 3. See LICENSE.md for terms."));
+                   QObject::tr("Licensed under the GNU Lesser General Public License, version 3. See LICENSE.txt for terms."));
 }
 
 inline QString about()

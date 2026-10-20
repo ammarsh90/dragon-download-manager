@@ -56,6 +56,9 @@ QVariant QueueModel::data(const QModelIndex &index, int role) const
         variant.setValue(job);
         return variant;
 
+    } else if (role == Qt::ToolTipRole) {
+        return job->localFullFileName() + "\n" + job->sourceUrl().toDisplayString(QUrl::RemovePassword)
+            + (job->errorMessage().isEmpty() ? QString() : "\n" + job->errorMessage());
     } else if (role == CopyToClipboardRole) {
         return job->sourceUrl().toString();
 

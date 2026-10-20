@@ -293,6 +293,12 @@ void Theme::applyTheme(const QMap<QString, QVariant> &map)
         QLineEdit, QSpinBox, QComboBox { background: %2; color: %1; border: 1px solid %4; border-radius: 4px; padding: 8px; min-height: 18px; selection-background-color: #e9c66b; selection-color: #211a08; }
         QLineEdit:focus, QComboBox:focus, QSpinBox:focus { border-color: #ba8b27; }
         QHeaderView::section { background: %3; color: %1; padding: 9px 8px; border: 0; border-right: 1px solid %4; border-bottom: 1px solid %4; font-weight: 600; }
+        QTreeWidget { background: %2; color: %1; border: 1px solid %4; outline: 0; }
+        QTreeWidget::item { padding: 5px 8px; }
+        QTreeWidget::item:selected { background: #f0d99f; color: #211a08; }
+        QProgressBar { border: 1px solid %4; border-radius: 4px; background: %2; color: %1; text-align: center; }
+        QProgressBar::chunk { background: #59ad79; border-radius: 3px; }
+        QDateTimeEdit { padding: 8px; background: %2; color: %1; border: 1px solid %4; }
         QTableView { background: %2; color: %1; border: 0; selection-background-color: #f0d99f; selection-color: #211a08; }
         QStatusBar { background: %3; color: %1; padding: 4px 10px; border-top: 1px solid %4; }
         QStatusBar::item { border: 0; }

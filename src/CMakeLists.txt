@@ -28,6 +28,7 @@ include(${CMAKE_SOURCE_DIR}/src/widgets/CMakeLists.txt)
 
 set(MY_SOURCES ${MY_SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/mainwindowdownloads.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp
 )
 
@@ -154,8 +155,8 @@ install(
 
 install(
     FILES
-        ${CMAKE_SOURCE_DIR}/LICENSE.md
-        ${CMAKE_SOURCE_DIR}/TROUBLESHOOTING.md
+        ${CMAKE_SOURCE_DIR}/LICENSE.txt
+        ${CMAKE_SOURCE_DIR}/docs/USER_GUIDE.md
     DESTINATION
         ${CMAKE_INSTALL_PREFIX}
 )
