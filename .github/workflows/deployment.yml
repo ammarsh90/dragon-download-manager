@@ -17,6 +17,7 @@ permissions:
   contents: write
 
 env:
+  CMAKE_BUILD_PARALLEL_LEVEL: 4
   # We want to see all warnings for the project, but hide them for Libtorrent:
   CXX_FLAGS_Libtorrent: "-Wall -Wextra -Wpedantic -Wvla -Wno-noexcept-type -Wno-format-zero-length -ftemplate-depth=512 -Wno-attributes -Wno-narrowing -Wno-overflow -Wno-redundant-move -Wno-maybe-uninitialized" # -Wa,-mbig-obj"
   CXX_FLAGS_Project: "-Wall -Wextra -Wpedantic -Wvla -ftemplate-depth=512"
@@ -92,17 +93,6 @@ jobs:
       matrix:
         os: [windows-latest]
         include:
-          - os: ubuntu-latest # == ubuntu-20.04: for Linux builds, Qt6 requires Ubuntu 20.04 or later.
-            qt_host: 'linux'
-            qt_target: 'desktop'
-            qt_arch: 'gcc_64'
-            qt_tools: ''
-            qt_modules: ''
-            Qt6_CUSTOM_INSTALL_PATH: "${{ github.workspace }}/../qt/"
-            DIRECTIVE_CMAKE_GENERATOR: ''
-            INSTALL_BOOST_PLATFORM_VERSION: '18.04'  # 18.04, 20.04 Rem: Ubuntu 20.04 doesn't have Boost 1.77.0
-            INSTALL_BOOST_TOOLSET: '' # gcc Rem: Setting the toolset with boost version < 1.78.0 may cause issues
-            INSTALL_BOOST_ARCH: '' # x86
           - os: windows-latest
             qt_host: 'windows'
             qt_target: 'desktop'
@@ -246,12 +236,11 @@ jobs:
           ${{env.LibtorrentRasterbar_INSTALL_DIR}}
 
     - name: Install NSIS
-      # Note: Github runners after windows-2022 don't include NSIS. NSIS must be installed manually
-      # Source: https://github.com/NSIS-Dev/ci-examples/blob/main/.github/workflows/windows-latest.yml
       if: ${{ matrix.os == 'windows-latest' }}
-      uses: repolevedavaj/install-nsis@v1.1.0
-      with:
-        nsis-version: '3.12'
+      shell: pwsh
+      run: |
+        choco install nsis --yes --no-progress
+        "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Append
 
     - name: Print NSIS version
       if: ${{ matrix.os == 'windows-latest' }}
