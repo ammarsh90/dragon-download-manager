@@ -213,7 +213,7 @@
      <normaloff>:/resources/icons/default/scalable/actions/about.svg</normaloff>:/resources/icons/default/scalable/actions/about.svg</iconset>
    </property>
    <property name="text">
-    <string>About ArrowDL...</string>
+    <string>About Dragon Download Manager...</string>
    </property>
   </action>
   <action name="actionPreferences">

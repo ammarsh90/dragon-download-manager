@@ -3,7 +3,7 @@
     "DESC_SectionLauncher": "Дополнительная программа, использующаяся для обмена сообщениями с веб-браузерами. Нужна для работы браузерных расширений.",
     "DESC_SectionStartMenuShortcut": "Создать ярлыки в меню Пуск.",
     "DESC_SectionDesktopShortcut": "Создать ярлык на рабочем столе.",
-    "DESC_UninstallIconDescription": "Удалить ArrowDL",
+    "DESC_UninstallIconDescription": "Удалить Dragon Download Manager",
     "DESC_ApplicationSession": "Программа (обязательно)",
     "DESC_LauncherSession": "Лаунчер (обязательно)",
     "DESC_StartMenuGroupSession": "Ярлык в меню Пуск",

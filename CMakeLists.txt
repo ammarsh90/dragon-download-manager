@@ -65,9 +65,9 @@ message(" - APP_VERSION_PATCH = ${APP_VERSION_PATCH}")
 message("------------------------------------------------------------------------")
 message("")
 
-project("ArrowDL"
+project("DragonDownloadManager"
     DESCRIPTION
-        "ArrowDL - Download Manager"
+        "Dragon Download Manager by Brami Group"
     LANGUAGES CXX
     VERSION
         ${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}.${APP_VERSION_PATCH}

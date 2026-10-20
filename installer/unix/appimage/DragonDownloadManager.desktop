@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Dragon Download Manager
+Comment=Download manager by Brami Group
+Comment[en]=Download manager by Brami Group
+Categories=Utility;Network;
+StartupNotify=false
+Terminal=false
+Exec=DragonDownloadManager %U
+Icon=DragonDownloadManager

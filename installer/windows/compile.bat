@@ -10,16 +10,16 @@
 :: Ex: 
 ::      /DBIN_PATH="<INSTALL_PATH>" 
 :: becomes 
-::      /DBIN_PATH="C:\Program Files\ArrowDL"
+::      /DBIN_PATH="C:\Program Files\Dragon Download Manager"
 ::
 
 makensis  ^
     /DPATH_OUT=".."  ^
-    /DVERSION="0.0.0"  ^
+    /DVERSION="1.0.0"  ^
     /DPLATFORM="x64"  ^
     /DBIN_PATH="<INSTALL_PATH>"  ^
     .\NSIS\setup.nsi
 
-rename "ArrowDLSetup.exe" "ArrowDL_x64_Setup.exe"
+rename "DragonDownloadManagerSetup.exe" "DragonDownloadManager_x64_Setup.exe"
 
 pause

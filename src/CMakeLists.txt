@@ -1,8 +1,8 @@
 string( TOUPPER "${CMAKE_BUILD_TYPE}" BuildTypeUpperCase )
 if(BuildTypeUpperCase STREQUAL "DEBUG")
-    set(TARGET_NAME "ArrowDLd")
+    set(TARGET_NAME "DragonDownloadManagerd")
 else()
-    set(TARGET_NAME "ArrowDL")
+    set(TARGET_NAME "DragonDownloadManager")
 endif()
 
 find_package(GoogleGumboParser REQUIRED)
@@ -490,8 +490,8 @@ else() # MacOS or Unix Compilers
 
         install (
             FILES
-                ${CMAKE_SOURCE_DIR}/installer/unix/portable/ArrowDL.desktop
-                ${CMAKE_SOURCE_DIR}/installer/unix/portable/ArrowDL_64x64.png
+                ${CMAKE_SOURCE_DIR}/installer/unix/portable/DragonDownloadManager.desktop
+                ${CMAKE_SOURCE_DIR}/installer/unix/portable/DragonDownloadManager_64x64.png
                 ${CMAKE_SOURCE_DIR}/installer/unix/portable/install_shortcut_desktop.sh
                 ${CMAKE_SOURCE_DIR}/installer/unix/portable/uninstall_shortcut_desktop.sh
                 ${CMAKE_SOURCE_DIR}/installer/unix/portable/README

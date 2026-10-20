@@ -83,6 +83,10 @@ void UpdateChecker::checkForUpdates()
  */
 void UpdateChecker::downloadMetadata()
 {
+    if (STR_GITHUB_RELEASES_API.isEmpty()) {
+        return;
+    }
+
     QUrl url(STR_GITHUB_RELEASES_API);
 
     NetworkManager *networkManager = s_networkManager;
@@ -137,9 +141,9 @@ void UpdateChecker::onMetadataFinished()
             QString targetAssetName;
 #if defined _WIN32
             if (IS_HOST_64BIT) {
-                targetAssetName = QLatin1String("ArrowDL_x64_Setup.exe");
+                targetAssetName = QLatin1String("DragonDownloadManager_x64_Setup.exe");
             } else {
-                targetAssetName = QLatin1String("ArrowDL_x86_Setup.exe");
+                targetAssetName = QLatin1String("DragonDownloadManager_x86_Setup.exe");
             }
 #elif defined __APPLE__
             targetAssetName = QLatin1String("<UNDEFINED>");

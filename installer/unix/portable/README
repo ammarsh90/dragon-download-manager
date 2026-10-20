@@ -1,11 +1,1 @@
-Desktop Shortcut
-================
-
-To install a shortcut to your Linux desktop, run:
-
-    ./install_shortcut_desktop.sh
-
-
-To uninstall it, run:
-
-    ./uninstall_shortcut_desktop.sh
+Dragon Download Manager launcher resources and shortcut scripts.

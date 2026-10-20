@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Dragon Download Manager
+Comment=Download manager by Brami Group
+Comment[en]=Download manager by Brami Group
+Categories=Utility;Network;
+StartupNotify=false
+Terminal=false
+Icon=/ABSOLUTE/PATH/TO/APP/DIRECTORY/DragonDownloadManager_64x64.png
+# HOTFIX for Ubuntu 22.04 using xcb display:
+Exec=bash -c "cd '/ABSOLUTE/PATH/TO/APP/DIRECTORY/../' && export QT_QPA_PLATFORM=xcb && export LD_LIBRARY_PATH=. && ./DragonDownloadManager %U"
+# Other:
+#Exec=/ABSOLUTE/PATH/TO/APP/DIRECTORY/../DragonDownloadManager %U

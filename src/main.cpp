@@ -21,6 +21,7 @@
 #include <Ipc/InterProcessCommunication>
 
 #include <QtCore/QCommandLineParser>
+#include <QtGui/QIcon>
 
 #include <boost/stacktrace.hpp>
 
@@ -62,9 +63,10 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName(STR_APPLICATION_NAME);
     QCoreApplication::setOrganizationName(STR_APPLICATION_ORGANIZATION);
     QCoreApplication::setApplicationVersion(STR_APPLICATION_VERSION);
+    application.setWindowIcon(QIcon(QLatin1String(":/resources/logo/icon128.png")));
 
     QCommandLineParser parser;
-    parser.setApplicationDescription(QString("\n%0").arg(QT_TRANSLATE_NOOP("main", "Another Download Manager")));
+    parser.setApplicationDescription(QString("\n%0").arg(QT_TRANSLATE_NOOP("main", "A download manager by Brami Group")));
     parser.addHelpOption();
     parser.addVersionOption();
 
@@ -79,7 +81,7 @@ int main(int argc, char *argv[])
     parser.process(application);
 
     // Fix missing Title Bar icon on KDE Plasma's Wayland session.
-    application.setDesktopFileName("arrowdl");
+    application.setDesktopFileName("DragonDownloadManager");
 
 #ifndef QT_DEBUG
     if (parser.isSet(verboseOption)) {

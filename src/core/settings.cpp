@@ -184,7 +184,11 @@ void Settings::setLanguage(const QString &language)
 QMap<QString, QVariant> Settings::theme() const
 {
     auto str = getSettingString(REGISTRY_UI_THEME);
-    return deserialize(str);
+    auto theme = deserialize(str);
+    if (!theme.contains(QLatin1String("colorScheme"))) {
+        theme.insert(QLatin1String("colorScheme"), QLatin1String("dark"));
+    }
+    return theme;
 }
 
 void Settings::setTheme(const QMap<QString, QVariant> &map)
@@ -593,7 +597,7 @@ QStringList Settings::httpUserAgents()
 
            // Other
             << QLatin1String("Version/10.0 Mobile/14E304 Safari/602.1")
-            << QLatin1String("ArrowDL/3.x")
+            << QLatin1String("DragonDownloadManager/1.x")
             << QLatin1String("Java1.1.4")
             << QLatin1String("Lynx/2.8rel.3 libwww-FM/2.14")
             << QLatin1String("HyperBrowser (Cray; I; OrganicOS 9.7.42beta-27)");

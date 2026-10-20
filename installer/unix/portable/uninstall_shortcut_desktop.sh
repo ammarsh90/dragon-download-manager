@@ -24,7 +24,7 @@ fi
 
 mkdir -p $LAUNCHER_DESTINATION
 
-TARGET=$LAUNCHER_DESTINATION/ArrowDL.desktop
+TARGET=$LAUNCHER_DESTINATION/DragonDownloadManager.desktop
 
 remove_shortcut $TARGET
 
@@ -33,6 +33,6 @@ remove_shortcut $TARGET
 echo "Removing desktop shortcut..."
 
 DESTINATION=$(xdg-user-dir DESKTOP)
-TARGET=$DESTINATION/ArrowDL.desktop
+TARGET=$DESTINATION/DragonDownloadManager.desktop
 
 remove_shortcut $TARGET

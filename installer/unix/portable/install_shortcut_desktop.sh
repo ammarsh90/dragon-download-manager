@@ -52,8 +52,8 @@ fi
 
 mkdir -p $LAUNCHER_DESTINATION
 
-SOURCE=./ArrowDL.desktop
-TARGET=$LAUNCHER_DESTINATION/ArrowDL.desktop
+SOURCE=./DragonDownloadManager.desktop
+TARGET=$LAUNCHER_DESTINATION/DragonDownloadManager.desktop
 
 add_shortcut $SOURCE $TARGET
 
@@ -61,8 +61,8 @@ add_shortcut $SOURCE $TARGET
 # #######################################################
 echo "Creating desktop shortcut..."
 
-SOURCE=./ArrowDL.desktop
+SOURCE=./DragonDownloadManager.desktop
 DESTINATION=$(xdg-user-dir DESKTOP)
-TARGET=$DESTINATION/ArrowDL.desktop
+TARGET=$DESTINATION/DragonDownloadManager.desktop
 
 add_shortcut $SOURCE $TARGET

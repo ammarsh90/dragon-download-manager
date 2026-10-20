@@ -32,17 +32,15 @@
  */
 using namespace Qt::Literals::StringLiterals;
 
-const QString STR_APPLICATION_NAME{"ArrowDL"};
+const QString STR_APPLICATION_NAME{"Dragon Download Manager"};
 const QString STR_APPLICATION_VERSION{APP_VERSION};
-const QString STR_APPLICATION_DATE{"2020"};
-const QString STR_APPLICATION_AUTHOR{"Sébastien Vavassori"};
-const QString STR_APPLICATION_WEBSITE{"https://www.arrow-dl.com/"};
-const QString STR_TUTORIAL_WEBSITE{"https://www.arrow-dl.com/tutorial/"};
+const QString STR_APPLICATION_DATE{"2026"};
+const QString STR_APPLICATION_AUTHOR{"Brami Group"};
+const QString STR_APPLICATION_WEBSITE{"https://mobile-dragon.net/"};
+const QString STR_TUTORIAL_WEBSITE{"https://mobile-dragon.net/"};
 
-const QString STR_GITHUB_OWNER{"setvisible"};
-const QString STR_GITHUB_REPO{"ArrowDL"};
-const QString STR_GITHUB_REPO_ADDRESS{"https://github.com/" % STR_GITHUB_OWNER % "/" % STR_GITHUB_REPO};
-const QString STR_GITHUB_RELEASES_API{"https://api.github.com/repos/" % STR_GITHUB_OWNER % "/" % STR_GITHUB_REPO % "/releases"};
+const QString STR_GITHUB_REPO_ADDRESS{"https://github.com/ammarsh90/dragon-download-manager"};
+const QString STR_GITHUB_RELEASES_API{"https://api.github.com/repos/ammarsh90/dragon-download-manager/releases"};
 
 /*
  * Remark: the "Application Organization Name"
@@ -50,7 +48,7 @@ const QString STR_GITHUB_RELEASES_API{"https://api.github.com/repos/" % STR_GITH
  * It should contain only ASCII characters for maximizing
  * compatibility with Windows 7/8/10 and following.
  */
-const QString STR_APPLICATION_ORGANIZATION{"Sebastien Vavassori"};
+const QString STR_APPLICATION_ORGANIZATION{"Brami Group"};
 
 /* Something like "2017-05-20_15:36:58" */
 const QString STR_APPLICATION_BUILD =

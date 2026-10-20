@@ -61,3 +61,11 @@ CMakeLists.txt.user*
 *.exe
 *.bat
 
+# Local dependency downloads, build outputs and release packages
+/.build-tools/
+/.deps/
+/build/
+/dist/
+/00/
+/tools/__pycache__/
+

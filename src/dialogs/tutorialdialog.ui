@@ -57,7 +57,7 @@ QGroupBox {
          </font>
         </property>
         <property name="text">
-         <string notr="true">Welcome to ArrowDL</string>
+         <string notr="true">Welcome to Dragon Download Manager</string>
         </property>
        </widget>
       </item>

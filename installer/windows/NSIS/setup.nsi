@@ -1,5 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; NSIS installer script for ArrowDL ;
+; NSIS installer script for Dragon Download Manager ;
 ; (http://nsis.sourceforge.net)     ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -25,22 +25,22 @@
     !define PLATFORM ""
 !endif
 
-!define PRODUCT_NAME "ArrowDL"
+!define PRODUCT_NAME "Dragon Download Manager"
 !define PRODUCT_VERSION ${VERSION}
-!define PRODUCT_GROUP "Sebastien Vavassori"
-!define PRODUCT_PUBLISHER "Sebastien Vavassori"
-!define PRODUCT_WEB_SITE "https://www.arrow-dl.com/"
+!define PRODUCT_GROUP "Brami Group"
+!define PRODUCT_PUBLISHER "Brami Group"
+!define PRODUCT_WEB_SITE "https://mobile-dragon.net/"
 
 ; Adds info to the installer
 VIProductVersion "${PRODUCT_VERSION}.000"
 VIFileVersion "${VERSION}.000"
 VIAddVersionKey "FileDescription" "Installation for ${PRODUCT_NAME}"
 VIAddVersionKey "FileVersion" "${VERSION}"
-VIAddVersionKey "ProductName" "ArrowDL"
+VIAddVersionKey "ProductName" "Dragon Download Manager"
 VIAddVersionKey "ProductVersion" "${PRODUCT_VERSION}"
-VIAddVersionKey "LegalCopyright" "(C) Sebastien Vavassori. All Rights Reserved."
+VIAddVersionKey "LegalCopyright" "Based on ArrowDL by Sebastien Vavassori; branding by Brami Group."
 
-!define REGISTRY_INSTALLER_FOLDER_NAME "ArrowDL"
+!define REGISTRY_INSTALLER_FOLDER_NAME "Dragon Download Manager"
 
 ManifestDPIAware true
 Unicode true
@@ -60,7 +60,7 @@ Unicode true
 
     ;Name and output file
     Name "${PRODUCT_NAME} ${VERSION}"
-    OutFile "${PATH_OUT}\ArrowDLSetup.exe"
+    OutFile "${PATH_OUT}\DragonDownloadManagerSetup.exe"
 
     ;Default installation folder
     InstallDir "$LOCALAPPDATA\${PRODUCT_NAME}" ; todo local user (otherwise config files and auto-update might not work)
@@ -118,7 +118,7 @@ Unicode true
     ;Instfiles page
         !insertmacro MUI_PAGE_INSTFILES
     ;Finish page
-        !define MUI_FINISHPAGE_RUN ArrowDL.exe
+        !define MUI_FINISHPAGE_RUN DragonDownloadManager.exe
         ;!define MUI_FINISHPAGE_LINK "${DESC_VisitWebSite} ${PRODUCT_WEB_SITE}" ; todo Doesn't work
         !define MUI_FINISHPAGE_LINK "${PRODUCT_WEB_SITE}"
         !define MUI_FINISHPAGE_LINK_LOCATION "${PRODUCT_WEB_SITE}"
@@ -195,9 +195,9 @@ SectionEnd
 Section "$(DESC_StartMenuGroupSession)" SectionStartMenuShortcut
     
     ;Create shortcuts in the start menu programs directory
-    CreateDirectory "$SMPROGRAMS\ArrowDL"
-    CreateShortCut "$SMPROGRAMS\ArrowDL\ArrowDL.lnk" "$INSTDIR\ArrowDL.exe"
-    CreateShortCut "$SMPROGRAMS\ArrowDL\$(DESC_UninstallIconDescription).lnk" "$INSTDIR\Uninstall.exe"
+    CreateDirectory "$SMPROGRAMS\Dragon Download Manager"
+    CreateShortCut "$SMPROGRAMS\Dragon Download Manager\Dragon Download Manager.lnk" "$INSTDIR\DragonDownloadManager.exe"
+    CreateShortCut "$SMPROGRAMS\Dragon Download Manager\$(DESC_UninstallIconDescription).lnk" "$INSTDIR\Uninstall.exe"
 
 SectionEnd
 
@@ -205,7 +205,7 @@ Section "$(DESC_DesktopShortcutSession)" SectionDesktopShortcut
     
     ;Create shortcuts in the start menu programs directory
     ;SetShellVarContext current
-    CreateShortCut "$DESKTOP\ArrowDL.lnk" "$INSTDIR\ArrowDL.exe"
+    CreateShortCut "$DESKTOP\Dragon Download Manager.lnk" "$INSTDIR\DragonDownloadManager.exe"
 
 SectionEnd
 
@@ -229,10 +229,10 @@ Section "Uninstall"
     RMDir /r "$INSTDIR"
 
     ;Third, remove the link from the start menu
-    RMDir /r "$SMPROGRAMS\ArrowDL"
+    RMDir /r "$SMPROGRAMS\Dragon Download Manager"
 
     ;and the link from the desktop
-    Delete "$DESKTOP\ArrowDL.lnk"
+    Delete "$DESKTOP\Dragon Download Manager.lnk"
 
 SectionEnd
 

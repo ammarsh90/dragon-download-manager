@@ -217,6 +217,7 @@ void MainWindow::changeEvent(QEvent *event)
         }
     } else if (event->type() == QEvent::LanguageChange) {
         ui->retranslateUi(this);
+        ui->actionAbout->setText(tr("About %0").arg(STR_APPLICATION_NAME));
         createContextMenu();
         propagateToolTips(); // propagate tooltips translations
         refreshTitleAndStatus();
@@ -318,6 +319,7 @@ void MainWindow::createActions()
     connect(ui->actionTutorial, SIGNAL(triggered()), this, SLOT(showTutorial()));
 
     ui->actionAbout->setShortcuts(QKeySequence::HelpContents);
+    ui->actionAbout->setText(tr("About %0").arg(STR_APPLICATION_NAME));
     ui->actionAbout->setToolTip(tr("About %0").arg(STR_APPLICATION_NAME));
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
 
