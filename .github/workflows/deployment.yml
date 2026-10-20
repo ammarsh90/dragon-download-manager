@@ -430,10 +430,12 @@ jobs:
     - name: Test Project
       continue-on-error: true
       timeout-minutes: 5
+      shell: pwsh
       env:
         QT_QPA_PLATFORM: offscreen
       working-directory: "${{env.Project_BUILD_DIR}}"
       run: |
+           $env:PATH = "${{ steps.qt6openssl.outputs.OpenSSL_ROOT_DIR }}/bin;$env:PATH"
            ctest -N  # -N gets the list of all the tests in CTest
            ctest . --verbose --timeout 20 --parallel 4
 

@@ -24,7 +24,8 @@
 class CustomStyleOptionProgressBar : public QStyleOptionProgressBar
 {
 public:
-    CustomStyleOptionProgressBar() = default;
+    enum { Type = QStyleOption::SO_CustomBase + 1, Version = 1 };
+    CustomStyleOptionProgressBar() { type = Type; version = Version; }
 
     QColor color = {Qt::blue};
     QIcon icon = {};

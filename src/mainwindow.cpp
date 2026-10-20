@@ -21,6 +21,7 @@
 #include <Constants>
 #include <Core/AbstractJob>
 #include <Core/Scheduler>
+#include <Core/QueueModel>
 #include <Core/JobTorrent>
 #include <Core/FileAccessManager>
 #include <Core/Format>
@@ -78,6 +79,16 @@
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QSplitter>
+#include <QtWidgets/QStackedWidget>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QToolBar>
+#include <QtWidgets/QHeaderView>
 
 #ifdef USE_QT_WINEXTRAS
 #  include <QtWinExtras/QWinTaskbarButton>
@@ -161,6 +172,19 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent)
     createSystemTray();
 
     readSettings();
+    QSettings interfaceSettings;
+    if (interfaceSettings.value("Interface/Revision", 0).toInt() < 2) {
+        auto theme = m_settings->theme();
+        theme.insert(Theme::ColorScheme, QStringLiteral("light"));
+        m_settings->setTheme(theme);
+        m_settings->setSystemTrayIconEnabled(false);
+        m_settings->setHideWhenMinimizedEnabled(false);
+        m_settings->setDontShowTutorialEnabled(true);
+        m_settings->writeSettings();
+        interfaceSettings.setValue("Interface/Revision", 2);
+    }
+    m_settings->setSystemTrayIconEnabled(false);
+    m_settings->setHideWhenMinimizedEnabled(false);
 
     refreshMenus();
     refreshSplitter();
@@ -168,6 +192,8 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent)
 
     Locale::applyLanguage(m_settings->language());
     Theme::applyTheme(m_settings->theme());
+
+    setupDownloadInterface();
 
     ui->splitter->setStretchFactor(0, 1);
     ui->splitter->setStretchFactor(1, 0);
@@ -208,14 +234,7 @@ void MainWindow::showEvent(QShowEvent *event)
 
 void MainWindow::changeEvent(QEvent *event)
 {
-    if (event->type() == QEvent::WindowStateChange) {
-        if ( m_settings->isSystemTrayIconEnabled() &&
-             m_settings->isHideWhenMinimizedEnabled()
-             && isVisible() && isMinimized()
-             ) {
-            m_systemTray->hideParentWidget();
-        }
-    } else if (event->type() == QEvent::LanguageChange) {
+    if (event->type() == QEvent::LanguageChange) {
         ui->retranslateUi(this);
         ui->actionAbout->setText(tr("About %0").arg(STR_APPLICATION_NAME));
         createContextMenu();
@@ -252,7 +271,7 @@ void MainWindow::dropEvent(QDropEvent *event)
         if (url.isLocalFile()) {
             loadFile(url.toLocalFile());
         } else {
-            addBatch(url);
+            addUrls(url.toString());
         }
     }
 }
@@ -323,7 +342,8 @@ void MainWindow::createActions()
     ui->actionAbout->setToolTip(tr("About %0").arg(STR_APPLICATION_NAME));
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
 
-    ui->actionAboutQt->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F1));
+    ui->actionAddUrls->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_N));
+    ui->actionAboutQt->setShortcut(QKeySequence());
     ui->actionAboutQt->setToolTip(tr("About Qt"));
     connect(ui->actionAboutQt, SIGNAL(triggered()), QApplication::instance(), SLOT(aboutQt()));
 
@@ -339,6 +359,100 @@ void MainWindow::createActions()
     propagateIcons();
 }
 
+void MainWindow::setupDownloadInterface()
+{
+    setMinimumSize(860, 520);
+    ui->lateralBar->hide();
+    ui->lateralBar->toggleViewAction()->setVisible(false);
+    ui->downloadBar->clear();
+    ui->downloadBar->setMovable(false);
+    ui->downloadBar->setFloatable(false);
+    ui->downloadBar->setIconSize(QSize(28, 28));
+    ui->downloadBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    ui->actionAddUrls->setText(tr("Add URL"));
+    ui->actionAddUrls->setIcon(QIcon(":/resources/icons/default/scalable/actions/add-urls.svg"));
+    ui->actionAddUrls->setToolTip(tr("Add a download link (Ctrl+N)"));
+    ui->actionResume->setText(tr("Resume"));
+    ui->actionPause->setText(tr("Pause"));
+    ui->actionCancel->setText(tr("Stop"));
+    ui->actionRemoveSelected->setText(tr("Remove"));
+    ui->actionOpenDirectory->setText(tr("Open folder"));
+    ui->actionPreferences->setText(tr("Options"));
+    for (auto *action : {ui->actionAddUrls, ui->actionResume, ui->actionPause,
+                        ui->actionCancel, ui->actionRemoveSelected, ui->actionOpenDirectory,
+                        ui->actionPreferences}) {
+        ui->downloadBar->addAction(action);
+    }
+    ui->downloadBar->widgetForAction(ui->actionAddUrls)->setObjectName("addDownloadButton");
+    ui->menubar->removeAction(ui->menuEdit->menuAction());
+    ui->menubar->removeAction(ui->menuView->menuAction());
+    ui->menuFile->clear();
+    ui->menuFile->setTitle(tr("&File"));
+    ui->menuFile->addAction(ui->actionAddUrls);
+    ui->menuFile->addSeparator();
+    ui->menuFile->addAction(ui->actionQuit);
+    ui->menuDownload->setTitle(tr("&Downloads"));
+    ui->menuDownload->clear();
+    for (auto *action : {ui->actionResume, ui->actionPause, ui->actionCancel,
+                        ui->actionOpenFile, ui->actionOpenDirectory, ui->actionInformation,
+                        ui->actionRemoveSelected, ui->actionRemoveCompleted}) {
+        ui->menuDownload->addAction(action);
+    }
+    ui->menuOption->setTitle(tr("&Options"));
+    ui->menuHelp->clear();
+    ui->menuHelp->addAction(ui->actionAbout);
+    ui->menuHelp->addAction(ui->actionCheckForUpdates);
+    ui->menuHelp->addAction(ui->actionWebsite);
+    for (auto *action : {ui->actionAboutQt, ui->actionAboutCompiler, ui->actionAboutYTDLP,
+                        ui->actionTutorial, ui->actionHome}) action->setVisible(false);
+    ui->queueView->setAlternatingRowColors(true);
+    const QList<int> widths{270, 145, 160, 75, 95, 145, 105};
+    for (int column = 0; column < widths.size(); ++column) {
+        ui->queueView->setColumnWidth(column, widths.at(column));
+    }
+    ui->queueView->horizontalHeader()->setMinimumSectionSize(65);
+
+    m_downloadPages = new QStackedWidget(ui->centralwidget);
+    m_downloadPages->setObjectName("downloadPages");
+    ui->verticalLayout->removeWidget(ui->splitter);
+    m_downloadPages->addWidget(ui->splitter);
+    auto *empty = new QWidget(m_downloadPages);
+    empty->setObjectName("emptyDownloads");
+    auto *layout = new QVBoxLayout(empty);
+    layout->setSpacing(16);
+    layout->addStretch();
+    auto *logo = new QLabel(empty);
+    logo->setPixmap(QPixmap(":/resources/logo/icon128.png").scaled(88, 88, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    logo->setAlignment(Qt::AlignCenter);
+    layout->addWidget(logo);
+    auto *heading = new QLabel(tr("Your downloads, in one place"), empty);
+    heading->setObjectName("emptyHeading");
+    heading->setAlignment(Qt::AlignCenter);
+    layout->addWidget(heading);
+    auto *hint = new QLabel(tr("Add a link to start downloading. You can also drag a link into this window."), empty);
+    hint->setObjectName("emptyHint");
+    hint->setWordWrap(true);
+    hint->setAlignment(Qt::AlignCenter);
+    layout->addWidget(hint);
+    auto *add = new QPushButton(tr("+  Add URL"), empty);
+    add->setObjectName("primaryButton");
+    add->setMinimumWidth(160);
+    layout->addWidget(add, 0, Qt::AlignHCenter);
+    connect(add, &QPushButton::clicked, this, qOverload<>(&MainWindow::addUrls));
+    layout->addStretch();
+    m_downloadPages->addWidget(empty);
+    ui->verticalLayout->addWidget(m_downloadPages);
+    connect(m_scheduler->model(), &QAbstractItemModel::rowsInserted, this, &MainWindow::refreshDownloadPage);
+    connect(m_scheduler->model(), &QAbstractItemModel::rowsRemoved, this, &MainWindow::refreshDownloadPage);
+    connect(m_scheduler->model(), &QAbstractItemModel::modelReset, this, &MainWindow::refreshDownloadPage);
+    refreshDownloadPage();
+}
+
+void MainWindow::refreshDownloadPage()
+{
+    if (m_downloadPages) m_downloadPages->setCurrentIndex(m_scheduler->count() == 0 ? 1 : 0);
+}
+
 void MainWindow::createContextMenu()
 {
     // delete previous menu if any
@@ -351,34 +465,16 @@ void MainWindow::createContextMenu()
 
     contextMenu = new QMenu(this);
 
-    contextMenu->addAction(ui->actionInformation);
-    contextMenu->addSeparator();
-    contextMenu->addAction(ui->actionOpenFile);
-    contextMenu->addAction(ui->actionRenameFile);
-    contextMenu->addAction(ui->actionDeleteFile);
-    contextMenu->addAction(ui->actionOpenDirectory);
-    contextMenu->addSeparator();
-    contextMenu->addAction(ui->actionCopy);
-    contextMenu->addSeparator();
     contextMenu->addAction(ui->actionResume);
     contextMenu->addAction(ui->actionPause);
     contextMenu->addAction(ui->actionCancel);
     contextMenu->addSeparator();
-    contextMenu->addAction(ui->actionRemoveCompleted);
+    contextMenu->addAction(ui->actionOpenFile);
+    contextMenu->addAction(ui->actionOpenDirectory);
+    contextMenu->addAction(ui->actionInformation);
+    contextMenu->addAction(ui->actionRenameFile);
+    contextMenu->addSeparator();
     contextMenu->addAction(ui->actionRemoveSelected);
-    contextMenu->addAction(ui->actionRemoveAll);
-    contextMenu->addSeparator();
-    contextMenu->addAction(ui->actionSelectAll);
-    contextMenu->addAction(ui->actionInvertSelection);
-    contextMenu->addSeparator();
-    contextMenu->addAction(ui->actionTop);
-    contextMenu->addAction(ui->actionUp);
-    contextMenu->addAction(ui->actionDown);
-    contextMenu->addAction(ui->actionBottom);
-
-    QMenu *advanced = contextMenu->addMenu(tr("Advanced"));
-    advanced->addAction(ui->actionImportFromFile);
-    advanced->addAction(ui->actionExportSelectedToFile);
 
     ui->queueView->setContextMenu(contextMenu);
 }
@@ -671,9 +767,7 @@ void MainWindow::handleMessage(const QString &message)
                 addStream(url);
 
             } else {
-                // Assume the URL is a HTML page address,
-                // so that the program downloads the content
-                addContent(url);
+                addUrls(url.toString());
             }
 
         } else if(InterProcessCommunication::isCommandOpenUrl(cleaned)) {
@@ -692,7 +786,7 @@ void MainWindow::handleMessage(const QString &message)
                 addStream(url);
 
             } else {
-                AddBatchDialog::quickDownload(url, m_scheduler);
+                addUrls(url.toString());
             }
 
         } else if(InterProcessCommunication::isCommandOpenManager(cleaned)) {
@@ -867,11 +961,51 @@ void MainWindow::pause()
 
 void MainWindow::showPreferences()
 {
-    if (!this->isVisible()) {
-        m_systemTray->showParentWidget();
-    }
-    PreferenceDialog dialog(m_settings, this);
-    connect(&dialog, SIGNAL(checkUpdate()), this, SLOT(checkForUpdates()));
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Options"));
+    dialog.setMinimumWidth(550);
+    auto *layout = new QVBoxLayout(&dialog);
+    layout->setContentsMargins(24, 24, 24, 20);
+    auto *form = new QFormLayout;
+    form->setSpacing(14);
+    auto *folderLayout = new QHBoxLayout;
+    auto *folder = new QLineEdit(QSettings().value("Downloads/Folder",
+        QStandardPaths::writableLocation(QStandardPaths::DownloadLocation)).toString(), &dialog);
+    auto *browse = new QPushButton(tr("Browse..."), &dialog);
+    folderLayout->addWidget(folder, 1);
+    folderLayout->addWidget(browse);
+    form->addRow(tr("Save downloads to"), folderLayout);
+    auto *simultaneous = new QSpinBox(&dialog);
+    simultaneous->setRange(1, 16);
+    simultaneous->setValue(m_settings->maxSimultaneousDownloads());
+    form->addRow(tr("Simultaneous downloads"), simultaneous);
+    auto *appearance = new QComboBox(&dialog);
+    appearance->addItems({tr("Light"), tr("Dark")});
+    appearance->setCurrentIndex(Theme::fromColorScheme(m_settings->theme().value(Theme::ColorScheme).toString()));
+    form->addRow(tr("Appearance"), appearance);
+    layout->addLayout(form);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, &dialog);
+    layout->addWidget(buttons);
+    connect(browse, &QPushButton::clicked, &dialog, [&] {
+        const auto path = QFileDialog::getExistingDirectory(&dialog, tr("Download folder"), folder->text());
+        if (!path.isEmpty()) folder->setText(QDir::toNativeSeparators(path));
+    });
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, [&] {
+        if (!QDir::isAbsolutePath(folder->text().trimmed()) || !QDir().mkpath(folder->text().trimmed())
+            || !QFileInfo(folder->text().trimmed()).isWritable()) {
+            QMessageBox::warning(&dialog, tr("Download folder"), tr("Choose a writable download folder."));
+            return;
+        }
+        QSettings().setValue("Downloads/Folder", folder->text().trimmed());
+        m_settings->setMaxSimultaneousDownloads(simultaneous->value());
+        auto theme = m_settings->theme();
+        theme.insert(Theme::ColorScheme, Theme::toColorScheme(appearance->currentIndex()));
+        m_settings->setTheme(theme);
+        Theme::applyTheme(theme);
+        m_settings->writeSettings();
+        dialog.accept();
+    });
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
     dialog.exec();
 }
 
@@ -895,7 +1029,12 @@ void MainWindow::checkForUpdates()
 
 void MainWindow::about()
 {
-    QMessageBox msgBox(QMessageBox::NoIcon, tr("About %0").arg(STR_APPLICATION_NAME), aboutHtml());
+    QMessageBox msgBox(QMessageBox::NoIcon, tr("About %0").arg(STR_APPLICATION_NAME), aboutHtml(), QMessageBox::Ok, this);
+    msgBox.setIconPixmap(QPixmap(":/resources/logo/icon128.png").scaled(80, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    auto *licenses = msgBox.addButton(tr("Open-source licenses"), QMessageBox::ActionRole);
+    connect(licenses, &QPushButton::clicked, this, [this] {
+        QMessageBox::information(this, tr("Open-source licenses"), buildAbout("\n\n"));
+    });
     msgBox.exec();
 }
 
@@ -980,9 +1119,6 @@ void MainWindow::refreshTitleAndStatus()
     auto count = m_scheduler->count();
     auto doneCount = completedCount + failedCount;
 
-    TorrentContext& torrentContext = TorrentContext::getInstance();
-    auto isTorrentEnabled = torrentContext.isEnabled();
-
     auto windowTitle = QString("%0 %1/%2 - %3 v%4").arg(
                 totalSpeed,
                 QString::number(doneCount),
@@ -990,7 +1126,7 @@ void MainWindow::refreshTitleAndStatus()
                 STR_APPLICATION_NAME,
                 STR_APPLICATION_VERSION).trimmed();
 
-    this->setWindowTitle(windowTitle);
+    this->setWindowTitle(QString("%1 - %2").arg(STR_APPLICATION_NAME, STR_APPLICATION_VERSION));
 
     auto title = tr("Done: %0 Running: %1 Total: %2").arg(
                 QString::number(doneCount),
@@ -1000,13 +1136,9 @@ void MainWindow::refreshTitleAndStatus()
     m_systemTray->setTitle(title);
     m_systemTray->setToolTip(windowTitle);
 
-    auto state = tr("%0 of %1 (%2), %3 running  %4 | Torrent: %5").arg(
-                QString::number(doneCount),
-                QString::number(count),
-                QString::number(count),
-                QString::number(runningCount),
-                totalSpeed,
-                isTorrentEnabled ? tr("active") : tr("inactive"));
+    auto state = tr("%1 downloads   |   %2 running   |   %3 completed").arg(count).arg(runningCount).arg(completedCount);
+    if (!totalSpeed.isEmpty()) state += QStringLiteral("   |   ") + totalSpeed;
+    refreshDownloadPage();
 
     m_statusBarLabel->setText(state);
 
@@ -1169,7 +1301,7 @@ void MainWindow::readSettings()
         this->move(position);
         this->resize(size);
     }
-    setWindowState(settings.value("WindowState", 0).value<Qt::WindowStates>());
+    setWindowState(settings.value("WindowState", 0).value<Qt::WindowStates>() & ~Qt::WindowMinimized);
     setWorkingDirectory(settings.value("WorkingDirectory").toString());
 
     restoreState(settings.value("WindowToolbarState").toByteArray());

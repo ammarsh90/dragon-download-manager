@@ -17,46 +17,33 @@
 #define DIALOGS_ADD_URLS_DIALOG_H
 
 #include <QtWidgets/QDialog>
+#include <QtCore/QUrl>
 
-class AbstractJob;
 class Scheduler;
 class Settings;
-
 class QLineEdit;
-
-namespace Ui {
-class AddUrlsDialog;
-}
+class QPushButton;
+class QLabel;
 
 class AddUrlsDialog : public QDialog
 {
     Q_OBJECT
 public:
     explicit AddUrlsDialog(const QString &text, Scheduler *scheduler, Settings *settings, QWidget *parent = nullptr);
-    ~AddUrlsDialog() override;
-
-public slots:
     void accept() override;
-    virtual void acceptPaused();
-    void reject() override;
-
-private slots:
-    void onChanged(QString);
-    void onTextChanged();
-
+    void acceptPaused();
 private:
-    Ui::AddUrlsDialog *ui = nullptr;
-    QLineEdit *m_fakeUrlLineEdit = nullptr;
-    Scheduler *m_scheduler = nullptr;
-    Settings *m_settings = nullptr;
-
-    void doAccept(bool started);
-
-    AbstractJob* createJobFile(const QString &url) const;
-    static inline QList<AbstractJob*> toList(AbstractJob *job);
-
-    void readUiSettings();
-    void writeUiSettings();
+    Scheduler *m_scheduler;
+    Settings *m_settings;
+    QLineEdit *m_url;
+    QLineEdit *m_saveAs;
+    QLabel *m_validation;
+    QPushButton *m_start;
+    QPushButton *m_later;
+    bool m_customPath = false;
+    QUrl downloadUrl() const;
+    void updateFields();
+    void browse();
+    void submit(bool started);
 };
-
-#endif // DIALOGS_ADD_URLS_DIALOG_H
+#endif

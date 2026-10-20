@@ -79,21 +79,23 @@ void QueueViewItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
         auto state = static_cast<AbstractJob::State>(
             index.data(QueueModel::StateRole).toInt());
 
-        CustomStyleOptionProgressBar progressBarOption;
-        progressBarOption.state = myOption.state;
-        progressBarOption.direction = QApplication::layoutDirection();
-        progressBarOption.rect = myOption.rect;
-        progressBarOption.fontMetrics = QApplication::fontMetrics();
-        progressBarOption.minimum = MIN_PROGRESS;
-        progressBarOption.maximum = MAX_PROGRESS;
-        progressBarOption.textAlignment = Qt::AlignCenter;
-        progressBarOption.textVisible = false;
-        progressBarOption.palette = myOption.palette;
-        progressBarOption.progress = progress;
-        progressBarOption.color = stateColor(state);
-        progressBarOption.icon = stateIcon(state);
-
-        QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBarOption, painter);
+        myOption.text.clear();
+        QStyledItemDelegate::paint(painter, myOption, index);
+        painter->save();
+        painter->setClipRect(myOption.rect);
+        const QRect track = myOption.rect.adjusted(10, 10, -10, -10);
+        painter->setPen(palette.color(QPalette::Mid));
+        painter->setBrush(palette.color(QPalette::AlternateBase));
+        painter->drawRoundedRect(track, 3, 3);
+        const double fraction = qBound(0.0, double(progress) / double(MAX_PROGRESS), 1.0);
+        if (fraction > 0.0) {
+            auto fill = track.adjusted(1, 1, -1, -1);
+            fill.setWidth(qRound(fill.width() * fraction));
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(stateColor(state));
+            painter->drawRoundedRect(fill, 2, 2);
+        }
+        painter->restore();
     } else {
         QStyledItemDelegate::paint(painter, myOption, index);
     }

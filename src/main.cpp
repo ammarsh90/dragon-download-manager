@@ -22,6 +22,7 @@
 
 #include <QtCore/QCommandLineParser>
 #include <QtGui/QIcon>
+#include <QtGui/QFont>
 
 #include <boost/stacktrace.hpp>
 
@@ -115,6 +116,7 @@ int main(int argc, char *argv[])
     }
 
 
+    application.setFont(QFont(QStringLiteral("Segoe UI"), 10));
     MainWindow window;
     window.show();
 

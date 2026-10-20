@@ -105,12 +105,12 @@ QVariant QueueModel::headerData(int section, Qt::Orientation orientation, int ro
         }
         if (role == Qt::DisplayRole) {
             switch (section) {
-            case COL_0_FILE_NAME:      return tr("Download/Name");
+            case COL_0_FILE_NAME:      return tr("File name");
             case COL_1_WEBSITE_DOMAIN: return tr("Domain");
             case COL_2_PROGRESS_BAR:   return tr("Progress");
             case COL_3_PERCENT:        return tr("Percent");
             case COL_4_FILE_SIZE:      return tr("Size");
-            case COL_5_ESTIMATED_TIME: return tr("Est. time");  /* Hidden by default */
+            case COL_5_ESTIMATED_TIME: return tr("Status / time left");  /* Hidden by default */
             case COL_6_SPEED:          return tr("Speed");      /* Hidden by default */
             default:
                 return {};
@@ -217,9 +217,7 @@ Qt::ItemFlags QueueModel::flags(const QModelIndex &index) const
 inline QString QueueModel::fileSize(const AbstractJob *job) const
 {
     if (job->bytesTotal() > 0) {
-        return tr("%0 of %1")
-            .arg(Format::fileSizeToString(job->bytesReceived()),
-                 Format::fileSizeToString(job->bytesTotal()));
+        return Format::fileSizeToString(job->bytesTotal());
     }
     return tr("Unknown");
 }

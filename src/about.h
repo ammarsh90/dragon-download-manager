@@ -44,11 +44,11 @@ inline QString about()
 
 inline QString aboutHtml()
 {
-    return QString("<h3>" + QObject::tr("About %0").arg(STR_APPLICATION_NAME) + "</h3>" +
-                   "<p><img src=\":/resources/logo/icon128.png\" /></p>" +
-                   "<p>" + buildAbout("</p><p>") + "</p>" +
-                   "<p><a href=\"https://github.com/setvisible/ArrowDL\">" +
-                   QObject::tr("Original ArrowDL project") + "</a></p>");
+    return QString("<h3>%1</h3><p>Version %2</p>"
+                   "<p>A download manager by Brami Group.</p>"
+                   "<p><a href=\"https://mobile-dragon.net/\">mobile-dragon.net</a></p>")
+        .arg(STR_APPLICATION_NAME.toHtmlEscaped(), STR_APPLICATION_VERSION.toHtmlEscaped());
+
 }
 
 #endif // ABOUT_H

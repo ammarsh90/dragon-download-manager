@@ -17,6 +17,7 @@
 
 #include <Constants>
 #include <Core/AbstractJob>
+#include <Core/ResourceItem>
 #include <Core/MimeDatabase>
 #include <Core/QueueModel>
 #include <Core/Utils>
@@ -51,6 +52,7 @@ QueueView::QueueView(QWidget *parent) : QTableView(parent)
     setAlternatingRowColors(false);
     setMidLineWidth(3);
     setShowGrid(false);
+    setWordWrap(false);
 
     horizontalHeader()->setVisible(true);
     horizontalHeader()->setStretchLastSection(true);
@@ -58,9 +60,9 @@ QueueView::QueueView(QWidget *parent) : QTableView(parent)
 
     verticalHeader()->setVisible(false);
     verticalHeader()->sectionResizeMode(QHeaderView::Fixed);
-    verticalHeader()->setMinimumSectionSize(ROW_DEFAULT_HEIGHT);
-    verticalHeader()->setMaximumSectionSize(ROW_DEFAULT_HEIGHT);
-    verticalHeader()->setDefaultSectionSize(ROW_DEFAULT_HEIGHT);
+    verticalHeader()->setMinimumSectionSize(36);
+    verticalHeader()->setMaximumSectionSize(36);
+    verticalHeader()->setDefaultSectionSize(36);
     verticalHeader()->resizeSections(QHeaderView::Fixed);
 
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -596,14 +598,13 @@ void QueueView::onCommitData(QWidget *editor)
         return;
     }
 
-    // Remove extension from base name
+    const auto index = selectionModel()->currentIndex();
+    auto *job = getJobAtRow(index.row());
     auto newName = lineEdit->text();
-    auto pos = newName.lastIndexOf('.');
-    if (pos != -1) {
-        newName = newName.left(pos);
+    if (job->resource()->mask().isEmpty() || job->resource()->mask().contains("*ext*")) {
+        const auto pos = newName.lastIndexOf('.');
+        if (pos != -1) newName = newName.left(pos);
     }
-    auto index = selectionModel()->currentIndex();
-    auto job = getJobAtRow(index.row());
     job->rename(newName);
 }
 

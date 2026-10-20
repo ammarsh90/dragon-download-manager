@@ -2,18 +2,25 @@
   <img src="src/resources/logo/icon128.png" alt="Dragon Download Manager" width="112" />
   <h1>Dragon Download Manager</h1>
   <p><strong>A C++ and Qt download manager by Brami Group</strong></p>
-  <p>Black-and-gold dragon emblem with a dark interface and gold highlights.</p>
+  <p>A clear download workflow, light and dark themes, and a gold Chinese dragon identity.</p>
 </div>
 
 Dragon Download Manager is a download manager customized for Brami Group and inspired by [mobile-dragon.net](https://mobile-dragon.net/), with a gold Chinese dragon identity and browser integration.
 
 ## Features
 
-- Queue and manage downloads from direct links, batches, and web pages.
-- Integrate with supported browsers through WebExtensions.
-- Download supported video and audio streams.
-- Handle torrent and magnet downloads.
-- Pause and resume jobs, organize files, and customize application preferences.
+- Add a direct HTTP/HTTPS link, choose a file name and start downloading.
+- Queue a download for later, pause, resume, stop and open downloaded files.
+- Clear, labeled toolbar and readable light/dark interfaces.
+- Simple settings for the download folder, appearance and simultaneous downloads.
+- Normal Windows taskbar behavior when minimized; no notification-area icon.
+- Browser integration through the inherited WebExtensions.
+
+## Interface
+
+![Main window](screenshots/v1.1.0-main-light.png)
+
+![Add a download](screenshots/v1.1.0-add-light.png)
 
 ## Technology
 

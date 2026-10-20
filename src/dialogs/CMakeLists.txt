@@ -38,7 +38,6 @@ set(MY_FORMS ${MY_FORMS}
     ${CMAKE_SOURCE_DIR}/src/dialogs/addcontentdialog.ui
     ${CMAKE_SOURCE_DIR}/src/dialogs/addstreamdialog.ui
     ${CMAKE_SOURCE_DIR}/src/dialogs/addtorrentdialog.ui
-    ${CMAKE_SOURCE_DIR}/src/dialogs/addurlsdialog.ui
     ${CMAKE_SOURCE_DIR}/src/dialogs/batchrenamedialog.ui
     ${CMAKE_SOURCE_DIR}/src/dialogs/compilerdialog.ui
     ${CMAKE_SOURCE_DIR}/src/dialogs/editiondialog.ui

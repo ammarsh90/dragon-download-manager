@@ -242,12 +242,62 @@ void Theme::applyTheme(const QMap<QString, QVariant> &map)
                 : QLatin1String("default")
             );
     }
+    // Fusion honors the same palette for menus, headers and dialogs on Windows.
+    qApp->setStyle(new CustomStyle(QStringLiteral("Fusion")));
     auto palette = qApp->style()->standardPalette();
     if (isDarkMode) {
         polishDark(palette);
+    } else {
+        palette.setColor(QPalette::Window, QColor("#f3f4f6"));
+        palette.setColor(QPalette::WindowText, QColor("#20242c"));
+        palette.setColor(QPalette::Base, Qt::white);
+        palette.setColor(QPalette::AlternateBase, QColor("#f7f8fa"));
+        palette.setColor(QPalette::Text, QColor("#20242c"));
+        palette.setColor(QPalette::Button, QColor("#f7f8fa"));
+        palette.setColor(QPalette::ButtonText, QColor("#20242c"));
+        palette.setColor(QPalette::Highlight, QColor("#e9c66b"));
+        palette.setColor(QPalette::HighlightedText, QColor("#211a08"));
+        palette.setColor(QPalette::Link, QColor("#8a6414"));
+        palette.setColor(QPalette::Disabled, QPalette::Text, QColor("#858b95"));
+        palette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor("#858b95"));
+        palette.setColor(QPalette::PlaceholderText, QColor("#727985"));
     }
-    qApp->setPalette(palette); // emits QEvent::PaletteChange
-    qApp->setStyle(new CustomStyle(platformStyle)); // emits QEvent::StyleChange
+    qApp->setPalette(palette);
+    const QString foreground = isDarkMode ? "#edf0f4" : "#20242c";
+    const QString surface = isDarkMode ? "#20252d" : "#ffffff";
+    const QString background = isDarkMode ? "#171b21" : "#f3f4f6";
+    const QString border = isDarkMode ? "#414854" : "#d6dbe3";
+    const QString hover = isDarkMode ? "#343b47" : "#edf0f5";
+    qApp->setStyleSheet(QStringLiteral(R"(
+        QDialog, QMessageBox { background: %3; color: %1; }
+        QLabel { color: %1; }
+        QLabel#dialogHeading { font-size: 20px; font-weight: 600; }
+        QLabel#emptyHeading { font-size: 24px; font-weight: 600; }
+        QLabel#emptyHint { font-size: 14px; }
+        QLabel#downloadValidation { color: #b76c21; }
+        QMenuBar { background: %2; color: %1; padding: 5px 8px; border-bottom: 1px solid %4; }
+        QMenuBar::item { padding: 5px 10px; background: transparent; }
+        QMenuBar::item:selected, QMenu::item:selected { background: %5; }
+        QMenu { background: %2; color: %1; border: 1px solid %4; padding: 5px; }
+        QMenu::item { padding: 7px 32px 7px 24px; }
+        QMenu::separator { height: 1px; background: %4; margin: 5px 8px; }
+        QToolBar { background: %2; border: 0; border-bottom: 1px solid %4; spacing: 6px; padding: 10px; }
+        QToolButton { color: %1; border: 1px solid transparent; border-radius: 6px; padding: 7px 10px; }
+        QToolButton:hover { background: %5; border-color: %4; }
+        QToolButton:disabled { color: #89909b; }
+        QToolButton#addDownloadButton, QPushButton#primaryButton { background: #e6bd55; color: #211a08; border: 1px solid #c69b38; font-weight: 600; }
+        QToolButton#addDownloadButton:hover, QPushButton#primaryButton:hover { background: #f0cf7b; }
+        QPushButton { background: %2; color: %1; border: 1px solid %4; border-radius: 5px; padding: 8px 16px; min-height: 18px; }
+        QPushButton:hover { background: %5; }
+        QPushButton:disabled, QPushButton#primaryButton:disabled { background: %3; color: #858b95; border-color: %4; }
+        QLineEdit, QSpinBox, QComboBox { background: %2; color: %1; border: 1px solid %4; border-radius: 4px; padding: 8px; min-height: 18px; selection-background-color: #e9c66b; selection-color: #211a08; }
+        QLineEdit:focus, QComboBox:focus, QSpinBox:focus { border-color: #ba8b27; }
+        QHeaderView::section { background: %3; color: %1; padding: 9px 8px; border: 0; border-right: 1px solid %4; border-bottom: 1px solid %4; font-weight: 600; }
+        QTableView { background: %2; color: %1; border: 0; selection-background-color: #f0d99f; selection-color: #211a08; }
+        QStatusBar { background: %3; color: %1; padding: 4px 10px; border-top: 1px solid %4; }
+        QStatusBar::item { border: 0; }
+    )").arg(foreground, surface, background, border, hover));
+
 }
 
 /******************************************************************************

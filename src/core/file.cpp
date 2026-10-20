@@ -69,7 +69,11 @@ File::OpenFlag File::open(ResourceItem *resource)
     auto fileName = target.toLocalFile();
 
     auto flag = open(fileName);
-    resource->setCustomFileName(customFileName());
+    if (flag == Open && m_file) {
+        // A simple Save As path includes its extension; legacy masks supply it separately.
+        const bool extensionInMask = resource->mask().isEmpty() || resource->mask().contains("*ext*");
+        resource->setCustomFileName(extensionInMask ? customFileName() : QFileInfo(m_file->fileName()).fileName());
+    }
     return flag;
 }
 

@@ -46,8 +46,8 @@ Settings::Settings(QObject *parent) : AbstractSettings(parent)
     // Tab Interface
     addDefaultSettingString(REGISTRY_UI_LANGUAGE, QLatin1String(""));
     addDefaultSettingString(REGISTRY_UI_THEME, QLatin1String(""));
-    addDefaultSettingBool(REGISTRY_DONT_SHOW_TUTO, false);
-    addDefaultSettingBool(REGISTRY_SHOW_SYSTEM_TRAY, true);
+    addDefaultSettingBool(REGISTRY_DONT_SHOW_TUTO, true);
+    addDefaultSettingBool(REGISTRY_SHOW_SYSTEM_TRAY, false);
     addDefaultSettingBool(REGISTRY_HIDE_MINIMIZED, false);
     addDefaultSettingBool(REGISTRY_SHOW_BALLOON, true);
     addDefaultSettingBool(REGISTRY_MINIMIZE_ESCAPE, false);
@@ -186,7 +186,7 @@ QMap<QString, QVariant> Settings::theme() const
     auto str = getSettingString(REGISTRY_UI_THEME);
     auto theme = deserialize(str);
     if (!theme.contains(QLatin1String("colorScheme"))) {
-        theme.insert(QLatin1String("colorScheme"), QLatin1String("dark"));
+        theme.insert(QLatin1String("colorScheme"), QLatin1String("light"));
     }
     return theme;
 }

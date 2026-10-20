@@ -28,6 +28,7 @@ class SystemTray;
 
 QT_BEGIN_NAMESPACE
 class QLabel;
+class QStackedWidget;
 class QMimeData;
 QT_END_NAMESPACE
 
@@ -125,6 +126,7 @@ private:
     FileAccessManager *m_fileAccessManager = nullptr;
     Settings *m_settings = nullptr;
     QLabel *m_statusBarLabel = nullptr;
+    QStackedWidget *m_downloadPages = nullptr;
 #ifdef USE_QT_WINEXTRAS
     QWinTaskbarButton *m_winTaskbarButton = nullptr;
     QWinTaskbarProgress *m_winTaskbarProgress = nullptr;
@@ -136,6 +138,8 @@ private:
     void writeSettings();
 
     void createActions();
+    void setupDownloadInterface();
+    void refreshDownloadPage();
     void createContextMenu();
     void createStatusbar();
     void createSystemTray();
