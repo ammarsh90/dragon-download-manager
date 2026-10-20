@@ -83,7 +83,7 @@ void QueueViewItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
         QStyledItemDelegate::paint(painter, myOption, index);
         painter->save();
         painter->setClipRect(myOption.rect);
-        const QRect track = myOption.rect.adjusted(10, 10, -10, -10);
+        const QRect track = myOption.rect.adjusted(8, 7, -8, -7);
         painter->setPen(palette.color(QPalette::Mid));
         painter->setBrush(palette.color(QPalette::AlternateBase));
         painter->drawRoundedRect(track, 3, 3);
@@ -95,6 +95,8 @@ void QueueViewItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
             painter->setBrush(stateColor(state));
             painter->drawRoundedRect(fill, 2, 2);
         }
+        painter->setPen(palette.color(QPalette::Text));
+        painter->drawText(track, Qt::AlignCenter, progress >= 0 ? QString::number(progress) + "%" : QString());
         painter->restore();
     } else {
         QStyledItemDelegate::paint(painter, myOption, index);
@@ -135,18 +137,18 @@ QColor QueueViewItemDelegate::stateColor(AbstractJob::State state) const
         return s_darkGrey;
 
     case AbstractJob::Paused:
-        return s_orange;
+        return QColor("#8d9aa7");
 
     case AbstractJob::Preparing:
     case AbstractJob::Connecting:
     case AbstractJob::DownloadingMetadata:
     case AbstractJob::Downloading:
     case AbstractJob::Endgame:
-        return s_green;
+        return QColor("#4c8dc4");
 
     case AbstractJob::Completed:
     case AbstractJob::Seeding:
-        return s_darkGreen;
+        return QColor("#588b79");
 
     case AbstractJob::Stopped:
     case AbstractJob::Skipped:

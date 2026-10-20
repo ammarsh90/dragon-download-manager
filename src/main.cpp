@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
     }
 
 
-    application.setFont(QFont(QStringLiteral("Segoe UI"), 10));
+    application.setFont(QFont(QStringLiteral("Segoe UI"), 9));
     MainWindow window;
     window.show();
 

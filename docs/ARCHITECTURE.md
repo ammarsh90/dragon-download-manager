@@ -23,3 +23,7 @@ Qt network requests and disk writes run in the GUI event loop; there are no shar
 ## Known limitations
 
 Fixed segments, no dynamic redistribution. Cross-request recovery requires strong ETag or Last-Modified. Single-stream servers restart from the beginning. Cache files may remain after removing an unfinished job; they are intentionally retained rather than deleted recursively. The basic scheduled start requires the app to remain running.
+
+## Compact interface and notification area (1.2.1)
+
+Progress details are collapsed initially. Long names and URLs are elided with full text in tooltips. MainWindow closeEvent hides the main window and owned progress windows only when a configured, available QSystemTrayIcon can restore them. SystemTray synchronizes quitOnLastWindowClosed with availability and user preference. Explicit Exit uses QCoreApplication::quit; aboutToQuit saves settings. Without an available notification area, normal close/quit behavior remains enabled.

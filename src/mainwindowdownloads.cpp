@@ -65,7 +65,7 @@ void MainWindow::setupDownloadNavigation()
     m_downloadSearch->setObjectName("downloadSearch");
     m_downloadSearch->setPlaceholderText(tr("Search file name, address or description"));
     m_downloadSearch->setClearButtonEnabled(true);
-    m_downloadSearch->setMaximumWidth(420);
+    m_downloadSearch->setMaximumWidth(300);
     searchBar->addWidget(label);
     searchBar->addStretch();
     searchBar->addWidget(m_downloadSearch);
@@ -78,7 +78,7 @@ void MainWindow::setupDownloadNavigation()
     m_downloadCategories->setHeaderHidden(true);
     m_downloadCategories->setRootIsDecorated(false);
     m_downloadCategories->setIndentation(12);
-    m_downloadCategories->setMinimumWidth(175);
+    m_downloadCategories->setMinimumWidth(145);
     const QList<QPair<QString, int>> items{
         {tr("All downloads"), 0}, {tr("Unfinished"), 1}, {tr("Completed"), 2},
         {tr("Waiting / paused"), 3}, {tr("Archives"), 10}, {tr("Documents"), 11},
@@ -88,13 +88,13 @@ void MainWindow::setupDownloadNavigation()
         auto *item = new QTreeWidgetItem(m_downloadCategories, {entry.first});
         item->setData(0, Qt::UserRole, entry.second);
         item->setData(0, Qt::UserRole + 1, entry.first);
-        item->setSizeHint(0, QSize(175, 34));
+        item->setSizeHint(0, QSize(145, 25));
     }
     m_downloadCategories->setCurrentItem(m_downloadCategories->topLevelItem(0));
     content->addWidget(m_downloadPages);
     content->setStretchFactor(0, 0);
     content->setStretchFactor(1, 1);
-    content->setSizes({195, 950});
+    content->setSizes({160, 800});
     ui->verticalLayout->addWidget(content, 1);
     connect(m_downloadSearch, &QLineEdit::textChanged, this, &MainWindow::filterDownloads);
     connect(m_downloadCategories, &QTreeWidget::currentItemChanged, this, &MainWindow::filterDownloads);

@@ -187,8 +187,15 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent)
         m_settings->writeSettings();
         interfaceSettings.setValue("Interface/Revision", 2);
     }
-    m_settings->setSystemTrayIconEnabled(false);
-    m_settings->setHideWhenMinimizedEnabled(false);
+    if (interfaceSettings.value("Interface/Revision", 0).toInt() < 3) {
+        m_settings->setSystemTrayIconEnabled(true);
+        m_settings->setHideWhenMinimizedEnabled(false);
+        setWindowState(Qt::WindowNoState);
+        resize(960, 600);
+        m_settings->writeSettings();
+        interfaceSettings.setValue("Interface/Revision", 3);
+    }
+    connect(qApp, &QCoreApplication::aboutToQuit, this, &MainWindow::writeSettings);
 
     refreshMenus();
     refreshSplitter();
@@ -227,7 +234,13 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     writeSettings();
-    m_systemTray->close();
+    if (m_settings->isSystemTrayIconEnabled() && QSystemTrayIcon::isSystemTrayAvailable()
+        && !qApp->isSavingSession()) {
+        for (const auto &dialog : std::as_const(m_progressWindows)) if (dialog) dialog->hide();
+        hide();
+        event->ignore();
+        return;
+    }
     event->accept();
 }
 
@@ -241,6 +254,11 @@ void MainWindow::showEvent(QShowEvent *event)
 
 void MainWindow::changeEvent(QEvent *event)
 {
+    if (event->type() == QEvent::WindowStateChange && isMinimized()
+        && m_settings->isSystemTrayIconEnabled() && m_settings->isHideWhenMinimizedEnabled()
+        && QSystemTrayIcon::isSystemTrayAvailable()) {
+        QTimer::singleShot(0, this, [this] { if (isMinimized()) hide(); });
+    }
     if (event->type() == QEvent::LanguageChange) {
         ui->retranslateUi(this);
         ui->actionAbout->setText(tr("About %0").arg(STR_APPLICATION_NAME));
@@ -300,7 +318,8 @@ void MainWindow::createActions()
     connect(ui->actionExportSelectedToFile, SIGNAL(triggered()), this, SLOT(exportSelectedToFile()));
     // --
     ui->actionQuit->setShortcuts(QKeySequence::Quit);
-    connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close())); //&QWidget::close
+    ui->actionQuit->setText(tr("E&xit Dragon"));
+    connect(ui->actionQuit, &QAction::triggered, qApp, &QCoreApplication::quit);
     //! [0]
 
     //! [1] Edit
@@ -368,16 +387,16 @@ void MainWindow::createActions()
 
 void MainWindow::setupDownloadInterface()
 {
-    setMinimumSize(860, 520);
+    setMinimumSize(760, 440);
     ui->lateralBar->hide();
     ui->lateralBar->toggleViewAction()->setVisible(false);
     ui->downloadBar->clear();
     ui->downloadBar->setMovable(false);
     ui->downloadBar->setFloatable(false);
-    ui->downloadBar->setIconSize(QSize(28, 28));
+    ui->downloadBar->setIconSize(QSize(22, 22));
     ui->downloadBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     ui->actionAddUrls->setText(tr("Add URL"));
-    ui->actionAddUrls->setIcon(QIcon(":/resources/icons/default/scalable/actions/add-urls.svg"));
+    ui->actionAddUrls->setIcon(QIcon(":/resources/icons/default-dark/scalable/actions/add-urls.svg"));
     ui->actionAddUrls->setToolTip(tr("Add a download link (Ctrl+N)"));
     ui->actionResume->setText(tr("Resume"));
     ui->actionPause->setText(tr("Pause"));
@@ -413,7 +432,7 @@ void MainWindow::setupDownloadInterface()
     for (auto *action : {ui->actionAboutQt, ui->actionAboutCompiler, ui->actionAboutYTDLP,
                         ui->actionTutorial, ui->actionHome}) action->setVisible(false);
     ui->queueView->setAlternatingRowColors(true);
-    const QList<int> widths{270, 145, 160, 75, 95, 145, 105};
+    const QList<int> widths{250, 120, 130, 60, 85, 130, 95};
     for (int column = 0; column < widths.size(); ++column) {
         ui->queueView->setColumnWidth(column, widths.at(column));
     }
@@ -976,11 +995,11 @@ void MainWindow::showPreferences()
 {
     QDialog dialog(this);
     dialog.setWindowTitle(tr("Options"));
-    dialog.setMinimumWidth(550);
+    dialog.setMinimumWidth(450);
     auto *layout = new QVBoxLayout(&dialog);
-    layout->setContentsMargins(24, 24, 24, 20);
+    layout->setContentsMargins(12, 12, 12, 10);
     auto *form = new QFormLayout;
-    form->setSpacing(14);
+    form->setSpacing(8);
     auto *folderLayout = new QHBoxLayout;
     auto *folder = new QLineEdit(QSettings().value("Downloads/Folder",
         QStandardPaths::writableLocation(QStandardPaths::DownloadLocation)).toString(), &dialog);
@@ -1000,6 +1019,10 @@ void MainWindow::showPreferences()
     appearance->addItems({tr("Light"), tr("Dark")});
     appearance->setCurrentIndex(Theme::fromColorScheme(m_settings->theme().value(Theme::ColorScheme).toString()));
     form->addRow(tr("Appearance"), appearance);
+    auto *tray = new QCheckBox(tr("Keep downloading when the main window is closed"), &dialog);
+    tray->setChecked(m_settings->isSystemTrayIconEnabled());
+    tray->setEnabled(QSystemTrayIcon::isSystemTrayAvailable());
+    form->addRow(tr("Notification area"), tray);
     layout->addLayout(form);
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, &dialog);
     layout->addWidget(buttons);
@@ -1015,6 +1038,7 @@ void MainWindow::showPreferences()
         }
         QSettings().setValue("Downloads/Folder", folder->text().trimmed());
         QSettings().setValue("Downloads/Connections", connections->currentData());
+        m_settings->setSystemTrayIconEnabled(tray->isChecked());
         m_settings->setMaxSimultaneousDownloads(simultaneous->value());
         auto theme = m_settings->theme();
         theme.insert(Theme::ColorScheme, Theme::toColorScheme(appearance->currentIndex()));

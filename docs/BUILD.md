@@ -26,3 +26,7 @@ NSIS setup source is `installer/windows/NSIS/setup.nsi`. Package only the staged
 The 1.2.0 Windows application compiled and linked successfully with the local toolchain. Main, add-download and progress screens were rendered for visual review. This is a preview release.
 
 The 1.1.1 release had focused download and resume checks. Those checks do not establish coverage for the new segmented 1.2 engine. No new behavioral tests were run for this change unless explicitly recorded in the release notes. The inherited full CI previously had four timed-out tests; do not interpret its overall status as a complete behavioral pass.
+
+### 1.2.1 interface update
+
+The Windows executable compiled and linked successfully. Light and dark progress windows, expanded details, the compact add form and main window were rendered for visual review. No new behavioral tests were run. Tray behavior is implemented with an availability guard and a separate explicit Exit action.

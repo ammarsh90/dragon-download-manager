@@ -60,9 +60,9 @@ QueueView::QueueView(QWidget *parent) : QTableView(parent)
 
     verticalHeader()->setVisible(false);
     verticalHeader()->sectionResizeMode(QHeaderView::Fixed);
-    verticalHeader()->setMinimumSectionSize(36);
-    verticalHeader()->setMaximumSectionSize(36);
-    verticalHeader()->setDefaultSectionSize(36);
+    verticalHeader()->setMinimumSectionSize(27);
+    verticalHeader()->setMaximumSectionSize(27);
+    verticalHeader()->setDefaultSectionSize(27);
     verticalHeader()->resizeSections(QHeaderView::Fixed);
 
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);

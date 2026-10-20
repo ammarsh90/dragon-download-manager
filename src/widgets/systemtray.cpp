@@ -22,6 +22,7 @@
 #include <QtGui/QAction>
 #include <QtGui/QCloseEvent>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QApplication>
 
 
 SystemTray::SystemTray(QWidget *parent) : QWidget(parent)
@@ -85,7 +86,7 @@ void SystemTray::setupContextMenu(
     auto font = m_restoreAction->font();
     font.setBold(true);
     m_restoreAction->setFont(font);
-    connect(m_restoreAction, &QAction::triggered, parentWidget(), &QWidget::showNormal);
+    connect(m_restoreAction, &QAction::triggered, this, &SystemTray::showParentWidget);
 
     m_hideWhenMinimizedAction = new QAction(this);
     m_hideWhenMinimizedAction->setCheckable(true);
@@ -124,12 +125,16 @@ void SystemTray::setSettings(Settings *settings)
     m_settings = settings;
     if (m_settings) {
         connect(m_settings, SIGNAL(changed()), this, SLOT(onSettingsChanged()));
+        onSettingsChanged();
     }
 }
 
 void SystemTray::onSettingsChanged()
 {
-    m_trayIcon->setVisible(m_settings->isSystemTrayIconEnabled());
+    const bool enabled = m_settings->isSystemTrayIconEnabled() && QSystemTrayIcon::isSystemTrayAvailable();
+    if (!enabled && m_trayIcon->isVisible() && !parentWidget()->isVisible()) showParentWidget();
+    m_trayIcon->setVisible(enabled);
+    qApp->setQuitOnLastWindowClosed(!enabled);
     if (m_hideWhenMinimizedAction) {
         m_hideWhenMinimizedAction->setChecked(m_settings->isHideWhenMinimizedEnabled());
     }
@@ -154,6 +159,8 @@ void SystemTray::showParentWidget()
     auto parent = this->parentWidget();
 
     parent->show();
+    parent->raise();
+    parent->activateWindow();
 
     // de-minimize
     if (parent->isMinimized()) {
@@ -201,12 +208,9 @@ void SystemTray::onSystemTrayIconActivated(QSystemTrayIcon::ActivationReason rea
     Q_ASSERT(parentWidget());
     auto parent = this->parentWidget();
     switch (reason) {
+    case QSystemTrayIcon::Trigger:
     case QSystemTrayIcon::DoubleClick:
-        if (!parent->isVisible() || parent->isMinimized()) {
-            showParentWidget();
-        } else {
-            hideParentWidget();
-        }
+        showParentWidget();
         break;
     default:
         ;

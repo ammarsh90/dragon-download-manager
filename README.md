@@ -16,7 +16,7 @@ The new segmented engine has been compiled and its interface previewed. Behavior
 4. Pause and resume from that window or the main list. **Background** closes the window while the download continues.
 5. When a name exists, keep both with a numbered name, change the name, replace the existing file, or open the queued download.
 
-The main window includes categories, search, Start queue, Stop all and a basic timed queue start. Normal minimization stays in the Windows taskbar.
+The main window includes categories, search, Start queue, Stop all and a basic timed queue start. Minimization stays in the Windows taskbar. Closing the main window keeps downloads running in the notification area. Restore with the Dragon tray icon; use File → Exit Dragon for a full exit.
 
 ## Download engine
 
@@ -33,11 +33,11 @@ This project does not claim full IDM feature parity. See the [feature study](doc
 
 ## Interface preview
 
-![Main window](screenshots/v1.2.0-main.png)
+![Main window](screenshots/v1.2.1-main.png)
 
-![Download file info](screenshots/v1.2.0-add.png)
+![Download file info](screenshots/v1.2.1-add.png)
 
-[Progress window preview](screenshots/v1.2.0-progress-preview.png) uses an illustrative paused file, not a measured download.
+[Progress window preview](screenshots/v1.2.1-progress-preview.png) uses an illustrative paused file, not a measured download.
 
 ## License and attribution
 

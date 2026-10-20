@@ -44,18 +44,18 @@ AddUrlsDialog::AddUrlsDialog(const QString &text, Scheduler *scheduler, Settings
 {
     setObjectName("addDownloadDialog");
     setWindowTitle(tr("Download file info"));
-    setMinimumWidth(600);
+    setMinimumWidth(500);
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(24, 24, 24, 20);
-    layout->setSpacing(18);
+    layout->setContentsMargins(12, 12, 12, 10);
+    layout->setSpacing(8);
     auto *heading = new QLabel(tr("Download file info"), this);
     heading->setObjectName("dialogHeading");
     layout->addWidget(heading);
     auto *hint = new QLabel(tr("Paste the download link and choose where to save your file."), this);
     hint->setWordWrap(true);
-    layout->addWidget(hint);
+    hint->hide();
     auto *form = new QFormLayout;
-    form->setSpacing(12);
+    form->setSpacing(7);
     m_url = new QLineEdit(this);
     m_url->setObjectName("downloadUrl");
     m_url->setPlaceholderText("https://example.com/file.zip");
@@ -79,7 +79,7 @@ AddUrlsDialog::AddUrlsDialog(const QString &text, Scheduler *scheduler, Settings
     m_connections->setCurrentIndex(qMax(0, m_connections->findData(configured)));
     form->addRow(tr("Connections"), m_connections);
     layout->addLayout(form);
-    m_fileInfo = new QLabel(tr("File information is requested from the server when a link is entered."), this);
+    m_fileInfo = new QLabel(tr("File size will appear after entering a link."), this);
     m_fileInfo->setWordWrap(true);
     layout->addWidget(m_fileInfo);
     m_metadataTimer = new QTimer(this);

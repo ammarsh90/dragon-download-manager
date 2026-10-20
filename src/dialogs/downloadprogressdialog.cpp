@@ -22,6 +22,7 @@
 #include <QtGui/QDesktopServices>
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QFormLayout>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QProgressBar>
@@ -36,21 +37,25 @@ DownloadProgressDialog::DownloadProgressDialog(AbstractJob *job, Scheduler *sche
     setAttribute(Qt::WA_DeleteOnClose);
     setObjectName("downloadProgressDialog");
     setWindowFlag(Qt::WindowMinimizeButtonHint);
-    setMinimumSize(660, 520);
+    setMinimumWidth(480);
+    resize(520, 310);
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(24, 22, 24, 20);
-    layout->setSpacing(16);
+    layout->setContentsMargins(12, 12, 12, 10);
+    layout->setSpacing(7);
     m_name = new QLabel(this);
-    m_name->setObjectName("dialogHeading");
-    m_name->setWordWrap(true);
+    m_name->setObjectName("downloadFileName");
+    m_name->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     layout->addWidget(m_name);
-    auto *source = new QLabel(job->sourceUrl().toDisplayString(QUrl::RemovePassword), this);
-    source->setWordWrap(true);
+    auto *source = new QLabel(this);
+    source->setObjectName("downloadSource");
+    source->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    source->setToolTip(job->sourceUrl().toDisplayString(QUrl::RemovePassword));
     source->setTextFormat(Qt::PlainText);
     source->setTextInteractionFlags(Qt::TextSelectableByMouse);
     layout->addWidget(source);
     auto *form = new QFormLayout;
-    form->setSpacing(8);
+    form->setHorizontalSpacing(12);
+    form->setVerticalSpacing(4);
     const auto field = [&](const QString &title) {
         auto *label = new QLabel(this);
         label->setTextFormat(Qt::PlainText);
@@ -59,6 +64,8 @@ DownloadProgressDialog::DownloadProgressDialog(AbstractJob *job, Scheduler *sche
         return label;
     };
     m_status = field(tr("Status"));
+    m_status->setWordWrap(true);
+    m_status->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     m_size = field(tr("File size"));
     m_received = field(tr("Downloaded"));
     m_speed = field(tr("Transfer rate"));
@@ -71,19 +78,27 @@ DownloadProgressDialog::DownloadProgressDialog(AbstractJob *job, Scheduler *sche
         limit->setSpecialValueText(tr("Unlimited"));
         limit->setSuffix(tr(" KiB/s"));
         limit->setValue(file->speedLimit());
+        limit->setMaximumWidth(140);
         form->addRow(tr("Speed limit"), limit);
         connect(limit, &QSpinBox::valueChanged, file, &JobFile::setSpeedLimit);
     }
     layout->addLayout(form);
     m_progress = new QProgressBar(this);
-    m_progress->setMinimumHeight(24);
+    m_progress->setFixedHeight(18);
     layout->addWidget(m_progress);
     m_connections = new QTreeWidget(this);
     m_connections->setRootIsDecorated(false);
     m_connections->setHeaderLabels({tr("Connection"), tr("Downloaded"), tr("Progress"), tr("Status")});
     m_connections->header()->setSectionResizeMode(QHeaderView::Stretch);
-    m_connections->setMinimumHeight(125);
-    layout->addWidget(m_connections, 1);
+    m_connections->setFixedHeight(120);
+    m_connections->hide();
+    layout->addWidget(m_connections);
+    auto *footer = new QHBoxLayout;
+    auto *details = new QPushButton(tr("Show details"), this);
+    details->setCheckable(true);
+    details->setObjectName("downloadDetailsButton");
+    footer->addWidget(details);
+    footer->addStretch();
     auto *buttons = new QDialogButtonBox(this);
     m_pause = buttons->addButton(tr("Pause"), QDialogButtonBox::ActionRole);
     m_pause->setObjectName("primaryButton");
@@ -91,7 +106,13 @@ DownloadProgressDialog::DownloadProgressDialog(AbstractJob *job, Scheduler *sche
     m_folder = buttons->addButton(tr("Open folder"), QDialogButtonBox::ActionRole);
     auto *background = buttons->addButton(tr("Background"), QDialogButtonBox::RejectRole);
     background->setToolTip(tr("Close this window and keep downloading in the main list."));
-    layout->addWidget(buttons);
+    footer->addWidget(buttons);
+    layout->addLayout(footer);
+    connect(details, &QPushButton::toggled, this, [this, details](bool expanded) {
+        m_connections->setVisible(expanded);
+        details->setText(expanded ? tr("Hide details") : tr("Show details"));
+        adjustSize();
+    });
     connect(background, &QPushButton::clicked, this, &QDialog::close);
     connect(m_pause, &QPushButton::clicked, this, [this] {
         if (!m_job) return;
@@ -107,6 +128,7 @@ DownloadProgressDialog::DownloadProgressDialog(AbstractJob *job, Scheduler *sche
     connect(job, &AbstractJob::changed, this, &DownloadProgressDialog::refresh);
     connect(job, &QObject::destroyed, this, &QDialog::close);
     refresh();
+    adjustSize();
 }
 
 void DownloadProgressDialog::refresh()
@@ -115,23 +137,29 @@ void DownloadProgressDialog::refresh()
     auto *job = m_job.data();
     const int progress = job->progress();
     const bool done = job->state() == AbstractJob::Completed;
-    m_name->setText(job->localFileName());
+    m_name->setText(m_name->fontMetrics().elidedText(job->localFileName(), Qt::ElideMiddle, qMax(400, width() - 28)));
+    m_name->setToolTip(job->localFileName());
+    auto *source = findChild<QLabel *>("downloadSource");
+    source->setText(source->fontMetrics().elidedText(job->sourceUrl().toDisplayString(QUrl::RemovePassword), Qt::ElideMiddle, qMax(400, width() - 28)));
     m_name->setTextFormat(Qt::PlainText);
     setWindowTitle((progress >= 0 ? QString::number(progress) + "% - " : QString()) + job->localFileName());
     m_status->setText(job->errorMessage().isEmpty() ? job->stateToString() : job->errorMessage());
     m_size->setText(job->bytesTotal() >= 0 ? Format::fileSizeToString(job->bytesTotal()) : tr("Unknown"));
     m_received->setText(Format::fileSizeToString(job->bytesReceived()));
     m_speed->setText(job->speed() > 0 ? Format::currentSpeedToString(job->speed()) : tr("—"));
-    m_remaining->setText(done ? tr("Complete") : Format::timeToString(job->remainingTime()));
+    m_remaining->setText(done ? tr("Complete") : job->isDownloading() ? Format::timeToString(job->remainingTime()) : tr("—"));
     m_progress->setRange(0, progress < 0 ? 0 : 100);
     m_progress->setValue(qMax(0, progress));
     m_pause->setText(job->isDownloading() ? tr("Pause") : tr("Resume"));
     m_pause->setEnabled(job->state() != AbstractJob::Endgame && (job->isDownloading() || job->isResumable()));
+    m_pause->setVisible(!done);
+    m_open->setVisible(done);
+    m_folder->setVisible(done);
     m_open->setEnabled(done);
     m_folder->setEnabled(QFileInfo(job->localFilePath()).isDir());
     auto *fileJob = qobject_cast<JobFile *>(job);
     m_resume->setText(done ? tr("Complete") : fileJob && fileJob->supportsResume()
-        ? tr("Supported — partial data is saved") : tr("Checking / server dependent"));
+        ? tr("Yes") : tr("Checking / server dependent"));
     const auto parts = fileJob ? fileJob->parts() : QList<SegmentedTransfer::Part>();
     while (m_connections->topLevelItemCount() > parts.size()) delete m_connections->takeTopLevelItem(0);
     for (int i = 0; i < parts.size(); ++i) {
