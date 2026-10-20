@@ -5,7 +5,7 @@
   <p>Black-and-gold dragon emblem with a dark interface and gold highlights.</p>
 </div>
 
-Dragon Download Manager is a branded derivative of [ArrowDL](https://github.com/setvisible/ArrowDL), customized for Brami Group and inspired by [mobile-dragon.net](https://mobile-dragon.net/). It keeps the upstream project's download features while adding its own name, visual identity, application metadata, and launcher branding.
+Dragon Download Manager is a branded derivative of  Group and inspired by [mobile-dragon.net](https://mobile-dragon.net/). It keeps the upstream project's download features while adding its own name, visual identity, application metadata, and launcher branding.
 
 ## Features
 
