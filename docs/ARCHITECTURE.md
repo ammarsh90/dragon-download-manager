@@ -27,3 +27,11 @@ Fixed segments, no dynamic redistribution. Cross-request recovery requires stron
 ## Compact interface and notification area (1.2.1)
 
 Progress details are collapsed initially. Long names and URLs are elided with full text in tooltips. MainWindow closeEvent hides the main window and owned progress windows only when a configured, available QSystemTrayIcon can restore them. SystemTray synchronizes quitOnLastWindowClosed with availability and user preference. Explicit Exit uses QCoreApplication::quit; aboutToQuit saves settings. Without an available notification area, normal close/quit behavior remains enabled.
+
+## Browser integration (1.3)
+
+The Chromium MV3 worker observes direct GET downloads, pauses a browser download and sends a bounded JSON request through DragonBrowserHost. The host uses Native Messaging length-prefixed JSON over stdin/stdout, then a user-scoped QLocalSocket. BrowserBridge validates the request, reserves a unique destination, appends a paused JobFile and atomically saves Session before acknowledgement. Browser request IDs are persisted for idempotent retries. Snapshot retains unfinished browser-owned jobs even when legacy auto-remove settings are enabled.
+
+Only after durable acknowledgement does the extension cancel its browser download. Failed handoffs try browser resume and bypass that download for the current worker lifetime. A persisted pending ledger helps service-worker recovery. Queued forms are serialized to avoid nested browser dialogs. Existing jobs are edited by AddUrlsDialog rather than appended twice.
+
+Each JobFile owns its NetworkManager, cookie jar and browser User-Agent override. Cookies are scoped by domain/path through QNetworkCookieJar and remain in memory. Session stores only the browser request ID, URL, file metadata and ordinary job state. The new native-host name and stable public extension key isolate Dragon from original upstream registration.

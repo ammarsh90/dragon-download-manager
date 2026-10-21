@@ -1,0 +1,9 @@
+{
+  "name": "net.mobile_dragon.download_manager",
+  "description": "Dragon Download Manager browser connection",
+  "path": "DragonBrowserHost.exe",
+  "type": "stdio",
+  "allowed_extensions": [
+    "dragon-download-manager@mobile-dragon.net"
+  ]
+}

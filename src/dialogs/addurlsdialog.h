@@ -23,6 +23,7 @@
 class QTimer;
 
 class AbstractJob;
+class JobFile;
 class QComboBox;
 class Scheduler;
 class Settings;
@@ -34,13 +35,15 @@ class AddUrlsDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit AddUrlsDialog(const QString &text, Scheduler *scheduler, Settings *settings, QWidget *parent = nullptr);
+    explicit AddUrlsDialog(const QString &text, Scheduler *scheduler, Settings *settings, QWidget *parent = nullptr, JobFile *pendingJob = nullptr);
     ~AddUrlsDialog() override;
     void accept() override;
     void acceptPaused();
 signals:
     void downloadAdded(AbstractJob *job, bool started);
 private:
+    QPointer<JobFile> m_pendingJob;
+    bool m_browserForm = false;
     Scheduler *m_scheduler;
     Settings *m_settings;
     QLineEdit *m_url;

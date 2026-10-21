@@ -15,6 +15,7 @@
 
 #include "jobfile.h"
 #include <Core/File>
+#include <Core/NetworkManager>
 #include <Core/ResourceItem>
 #include <Core/Scheduler>
 #include <QtCore/QSettings>
@@ -22,8 +23,10 @@
 
 JobFile::JobFile(QObject *parent, ResourceItem *resource)
     : AbstractJob(parent, resource), m_scheduler(static_cast<Scheduler *>(parent)),
-      m_transfer(new SegmentedTransfer(m_scheduler->networkManager(), this))
+      m_contextNetwork(new NetworkManager(this)),
+      m_transfer(new SegmentedTransfer(m_contextNetwork, this))
 {
+    m_contextNetwork->setSettings(m_scheduler->settings());
     setMaxConnections(QSettings().value("Downloads/Connections", 8).toInt());
     connect(m_transfer, &SegmentedTransfer::progress, this, [this](qint64 received, qint64 total) {
         if (m_sessionStart < 0) m_sessionStart = received;
@@ -110,4 +113,9 @@ void JobFile::transferFailed(const QString &message)
     setErrorMessage(message);
     setState(NetworkError);
     finish();
+}
+
+void JobFile::setBrowserContext(const QUrl &url, const QString &agent, const QJsonArray &cookies)
+{
+    m_contextNetwork->setBrowserContext(url, agent, cookies);
 }

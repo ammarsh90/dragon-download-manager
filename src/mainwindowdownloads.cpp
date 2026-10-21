@@ -16,6 +16,11 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "dialogs/downloadprogressdialog.h"
+#include "dialogs/addurlsdialog.h"
+#include <Core/JobFile>
+#include <QtCore/QCoreApplication>
+#include <QtGui/QDesktopServices>
+#include <QtWidgets/QPushButton>
 #include <Core/AbstractJob>
 #include <Core/Scheduler>
 #include <Core/ResourceItem>
@@ -114,6 +119,9 @@ void MainWindow::setupDownloadNavigation()
     ui->downloadBar->addAction(schedule);
     ui->menuDownload->addSeparator();
     ui->menuDownload->addActions({stopAll, start, schedule, ui->actionRenameFile});
+    auto *browser = new QAction(tr("Browser integration..."), this);
+    connect(browser, &QAction::triggered, this, &MainWindow::showBrowserIntegration);
+    ui->menuOption->addAction(browser);
     ui->actionInformation->setText(tr("Download progress"));
     filterDownloads();
 }
@@ -212,5 +220,53 @@ void MainWindow::showDownloadSchedule()
         statusBar()->showMessage(tr("Queue scheduled for %1").arg(when->dateTime().toString("yyyy-MM-dd HH:mm")), 15000);
         dialog.accept();
     });
+    dialog.exec();
+}
+
+void MainWindow::receiveBrowserDownload(JobFile *job, bool showDialog)
+{
+    if (!job) return;
+    if (!showDialog) { m_scheduler->resume(job); showDownloadProgress(job); return; }
+    m_browserForms.enqueue(QPointer<JobFile>(job));
+    if (!m_browserFormOpen) QTimer::singleShot(0, this, &MainWindow::openNextBrowserForm);
+}
+
+void MainWindow::openNextBrowserForm()
+{
+    if (m_browserFormOpen) return;
+    while (!m_browserForms.isEmpty()) {
+        auto job = m_browserForms.dequeue();
+        if (!job || job->state() != AbstractJob::Paused) continue;
+        m_browserFormOpen = true;
+        showNormal(); raise(); activateWindow();
+        AddUrlsDialog dialog(job->sourceUrl().toString(), m_scheduler, m_settings, this, job);
+        connect(&dialog, &AddUrlsDialog::downloadAdded, this, [this](AbstractJob *download, bool started) {
+            if (started) QTimer::singleShot(0, this, [this, guarded = QPointer<AbstractJob>(download)] {
+                if (guarded) showDownloadProgress(guarded);
+            });
+        });
+        dialog.exec();
+        m_browserFormOpen = false;
+        QTimer::singleShot(0, this, &MainWindow::openNextBrowserForm);
+        return;
+    }
+}
+
+void MainWindow::showBrowserIntegration()
+{
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Dragon browser integration"));
+    dialog.setMinimumWidth(480);
+    auto *layout = new QVBoxLayout(&dialog);
+    auto *text = new QLabel(tr("Chrome / Edge: open the Extensions page, enable Developer mode, choose Load unpacked, and select the chromium folder. Then open the Dragon extension and check the connection.\n\nFirefox: the included development extension can be loaded temporarily from about:debugging. Permanent installation requires Mozilla signing.\n\nThe installer registers the connection. Portable users must run register-browser.ps1 once."), &dialog);
+    text->setWordWrap(true);
+    layout->addWidget(text);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+    auto *folder = buttons->addButton(tr("Open extension folder"), QDialogButtonBox::ActionRole);
+    connect(folder, &QPushButton::clicked, &dialog, [] {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/browser-extension"));
+    });
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
     dialog.exec();
 }

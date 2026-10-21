@@ -1,9 +1,12 @@
 {
-  "author": "SetVisible(0!=1)",
+  "author": "Brami Group",
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "integration.js",
+      "background.js"
+    ]
   },
-  "action": { 
+  "action": {
     "default_icon": {
       "16": "icons/icon16.png",
       "24": "icons/icon24.png",
@@ -12,18 +15,18 @@
       "64": "icons/icon64.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "__MSG_extensionName__",
+    "default_title": "Dragon Download Manager",
     "default_popup": "popup.html"
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "DownRightNow@example.org",
-      "strict_min_version": "58.0"
+      "id": "dragon-download-manager@mobile-dragon.net",
+      "strict_min_version": "128.0"
     }
   },
   "default_locale": "en",
-  "description": "__MSG_extensionDescription__",
-  "homepage_url": "https://www.arrow-dl.com/",
+  "description": "Send downloads to Dragon Download Manager with automatic capture and browser fallback.",
+  "homepage_url": "https://mobile-dragon.net/",
   "icons": {
     "16": "icons/icon16.png",
     "24": "icons/icon24.png",
@@ -33,7 +36,7 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "name": "__MSG_extensionName__",
+  "name": "Dragon Browser Integration",
   "options_ui": {
     "page": "options.html",
     "browser_style": false
@@ -41,12 +44,19 @@
   "permissions": [
     "activeTab",
     "contextMenus",
+    "cookies",
+    "downloads",
     "menus",
     "nativeMessaging",
     "scripting",
     "storage",
-    "tabs"
+    "tabs",
+    "webRequest"
   ],
-  "short_name": "ArrowDL",
-  "version": "0.0.65536"
+  "short_name": "Dragon",
+  "version": "1.3.0",
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ]
 }

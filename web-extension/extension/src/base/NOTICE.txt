@@ -1,0 +1,5 @@
+Dragon Browser Integration
+
+Browser download capture and desktop host integration by Brami Group. The retained and adapted page-link collector originated in ArrowDL, whose source copyrights and GNU LGPL v3 are preserved. See LICENSE.txt and the application source notices. Dragon branding is described in BRANDING_LICENSE.txt in the application distribution.
+
+Original page-link collector attribution: SetVisible(0!=1), Sébastien Vavassori.

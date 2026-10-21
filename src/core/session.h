@@ -31,7 +31,7 @@ public:
                      const QString &filename,
                      Scheduler *scheduler);
 
-    static void write(const QList<AbstractJob *> &jobs,
+    static bool write(const QList<AbstractJob *> &jobs,
                       const QString &filename);
 };
 

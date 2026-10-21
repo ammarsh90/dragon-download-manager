@@ -1,6 +1,6 @@
 "use strict";
 
-const application = "com.arrowdl.extension";
+const application = "net.mobile_dragon.download_manager";
 
 /* ***************************** */
 /* Native Message                */

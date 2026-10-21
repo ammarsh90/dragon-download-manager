@@ -4,9 +4,9 @@ A C++ / Qt 6 download manager by **Brami Group**. Gold and charcoal branding, a 
 
 [Website](https://mobile-dragon.net/) · [Windows releases](https://github.com/ammarsh90/dragon-download-manager/releases)
 
-## 1.2 preview
+## 1.3 preview
 
-The new segmented engine has been compiled and its interface previewed. Behavioral network checks have not been run for this version; the release is marked as a preview. The previous 1.1.1 release remains available.
+Dragon Browser Integration adds direct download capture for Chrome / Edge and a Firefox development add-on. Install the extension once using the [browser setup guide](docs/BROWSER_INTEGRATION.md). The app and native host were built; browser end-to-end checks have not been run, so this remains a preview.
 
 ## Download workflow
 
@@ -26,10 +26,17 @@ This project does not claim full IDM feature parity. See the [feature study](doc
 
 ## Documentation
 
+- [Browser integration setup](docs/BROWSER_INTEGRATION.md)
 - [User guide](docs/USER_GUIDE.md)
 - [IDM feature and interface study](docs/IDM_STUDY.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Build instructions](docs/BUILD.md)
+
+## Browser setup preview
+
+![Browser connection guide](screenshots/v1.3.0-browser-setup.png)
+
+[Captured file information preview](screenshots/v1.3.0-browser-file-info.png) uses illustrative file metadata.
 
 ## Interface preview
 

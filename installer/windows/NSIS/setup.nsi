@@ -175,6 +175,15 @@ Section "$(DESC_ApplicationSession)" SectionMainApplication
     SetOutPath "$INSTDIR"
     SetOverwrite try
 
+    ;Remove only legacy bridge files owned by earlier Dragon packages.
+    Delete "$INSTDIR\launcher.exe"
+    Delete "$INSTDIR\launcher-manifest-chrome.json"
+    Delete "$INSTDIR\launcher-manifest-firefox.json"
+    Delete "$INSTDIR\launcher-manifest-edge.json"
+    Delete "$INSTDIR\install.bat"
+    Delete "$INSTDIR\uninstall.bat"
+    Delete "$INSTDIR\ReadMe.txt"
+    Delete "$INSTDIR\locale\arrowdl_*.qm"
     ;Add installation files
     File /r "${BIN_PATH}\"
 
@@ -186,8 +195,19 @@ SectionEnd
 Section "$(DESC_LauncherSession)" SectionLauncher
     SectionIn RO ;Make it read-only
 
-    ;Run script that writes Regitry keys for the Launcher
-    ExecWait '"$INSTDIR\install.bat" -quiet'
+    ;Migrate only old registrations belonging to this installation.
+    ReadRegStr $0 HKCU "Software\Google\Chrome\NativeMessagingHosts\com.arrowdl.extension" ""
+    StrCmp $0 "$INSTDIR\launcher-manifest-chrome.json" 0 +2
+    DeleteRegKey HKCU "Software\Google\Chrome\NativeMessagingHosts\com.arrowdl.extension"
+    ReadRegStr $0 HKCU "Software\Microsoft\Edge\NativeMessagingHosts\com.arrowdl.extension" ""
+    StrCmp $0 "$INSTDIR\launcher-manifest-edge.json" 0 +2
+    DeleteRegKey HKCU "Software\Microsoft\Edge\NativeMessagingHosts\com.arrowdl.extension"
+    ReadRegStr $0 HKCU "Software\Mozilla\NativeMessagingHosts\com.arrowdl.extension" ""
+    StrCmp $0 "$INSTDIR\launcher-manifest-firefox.json" 0 +2
+    DeleteRegKey HKCU "Software\Mozilla\NativeMessagingHosts\com.arrowdl.extension"
+    WriteRegStr HKLM "Software\Google\Chrome\NativeMessagingHosts\net.mobile_dragon.download_manager" "" "$INSTDIR\dragon-host-chromium.json"
+    WriteRegStr HKLM "Software\Microsoft\Edge\NativeMessagingHosts\net.mobile_dragon.download_manager" "" "$INSTDIR\dragon-host-chromium.json"
+    WriteRegStr HKLM "Software\Mozilla\NativeMessagingHosts\net.mobile_dragon.download_manager" "" "$INSTDIR\dragon-host-firefox.json"
 
 SectionEnd
 
@@ -223,7 +243,9 @@ SectionEnd
 Section "Uninstall"
  
     ;First, clean the Registry 
-    ExecWait '"$INSTDIR\uninstall.bat" -quiet'
+    DeleteRegKey HKLM "Software\Google\Chrome\NativeMessagingHosts\net.mobile_dragon.download_manager"
+    DeleteRegKey HKLM "Software\Microsoft\Edge\NativeMessagingHosts\net.mobile_dragon.download_manager"
+    DeleteRegKey HKLM "Software\Mozilla\NativeMessagingHosts\net.mobile_dragon.download_manager"
 
     ;Second, delete the uninstaller
     RMDir /r "$INSTDIR"

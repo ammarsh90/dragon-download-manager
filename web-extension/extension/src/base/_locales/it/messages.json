@@ -1,14 +1,12 @@
 {
   "extensionName": {
-    "message": "ArrowDL - Arrow Downloader",
+    "message": "Dragon Browser Integration",
     "description": "Name of the extension, displayed in the web store. Should not exceed 45 characters."
   },
   "extensionDescription": {
-    "message": "Il modo più semplice per scaricare immagini, torrent, video e musica da qualsiasi sito web",
+    "message": "Capture direct downloads with Dragon Download Manager, with manual link sending and browser fallback.",
     "description": "Description of the extension, displayed in the web store. Should not exceed 132 characters."
   },
-
-
   "contextMenuSavePage": {
     "message": "Salva pagina",
     "description": "Title of the context menu for Save page"
@@ -45,8 +43,6 @@
     "message": "Salva launcher",
     "description": "Title of the context menu for Save launcher"
   },
-
-
   "popupDownload": {
     "message": "Download...",
     "description": "Title of the context menu for Download..."
@@ -68,8 +64,8 @@
     "description": "Title of the context menu for Download content (paused)"
   },
   "popupOpen": {
-    "message": "Apri ArrowDL",
-    "description": "Title of the context menu for Open ArrowDL"
+    "message": "Apri Dragon Download Manager",
+    "description": "Title of the context menu for Open Dragon Download Manager"
   },
   "popupPreferences": {
     "message": "Impostazioni...",
@@ -80,10 +76,9 @@
     "description": "Title of the context menu for Options..."
   },
   "popupVisitWebsite": {
-    "message": "Visita sito web ArrowDL",
-    "description": "Title of the context menu for Visit ArrowDL website"
+    "message": "Visita sito web Dragon Download Manager",
+    "description": "Title of the context menu for Visit Dragon Download Manager website"
   },
-
   "popupError": {
     "message": "Errore",
     "description": "Title of Error"
@@ -104,8 +99,6 @@
     "message": "Modo incognito disabilita<br />funzioni download",
     "description": "Remark message 1"
   },
-
-
   "optionsMainTitle": {
     "message": "Opzioni",
     "description": "Title of Options"
@@ -151,19 +144,18 @@
     "description": "Tells the user how to install the application."
   },
   "optionsInstallMessageLink": {
-    "message": "Visita sito web ArrowDL",
+    "message": "Visita sito web Dragon Download Manager",
     "description": "Link to the application URL."
   },
   "optionsRefresh": {
     "message": "Aggiorna informazioni $SYMBOL$",
     "description": "Title of Refresh information",
     "placeholders": {
-      "symbol" : {
-        "content" : "$1"
+      "symbol": {
+        "content": "$1"
       }
     }
   },
-
   "optionsStatus": {
     "message": "Stato:",
     "description": "Title of Status"

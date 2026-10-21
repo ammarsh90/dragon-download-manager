@@ -1,6 +1,7 @@
+importScripts("integration.js");
 "use strict";
 
-const application = "com.arrowdl.extension";
+const application = "net.mobile_dragon.download_manager";
 
 // let us know we're running
 console.log("Background service worker has loaded via Manifest V3.");
@@ -55,13 +56,13 @@ function save_page(info, tab) {
 }
 
 function save_link(info, tab) {
-  let safeUrl = escapeHTML(info.linkUrl);
-  sendDataToArrowDL("[DOWNLOAD_LINK] " + safeUrl);
+  let safeUrl = info.linkUrl;
+  sendDataToDragon("[DOWNLOAD_LINK] " + safeUrl);
 }
 
 function save_image(info, tab) {
-  const safeUrl = escapeHTML(info.srcUrl);
-  sendDataToArrowDL("[DOWNLOAD_LINK] " + safeUrl);
+  const safeUrl = info.srcUrl;
+  sendDataToDragon("[DOWNLOAD_LINK] " + safeUrl);
 }
 
 
@@ -78,7 +79,7 @@ function collectDOMandSendData(userSettings) {
        
         if (tabUrl.startsWith("chrome")) {
             console.log("Nothing to download from 'chrome://' or 'chrome-extension://'");
-            console.log("ArrowDL is disabled when the current tab is Chrome settings tab.");
+            console.log("Dragon Download Manager is disabled when the current tab is Chrome settings tab.");
            return;
         }
        
@@ -88,7 +89,7 @@ function collectDOMandSendData(userSettings) {
           let hasMedia = true;
           let array = "";
        
-          console.log(restoredSettings);
+
        
           // Options
           if (restoredSettings.radioApplicationId === 1) {
@@ -161,7 +162,7 @@ function collectDOMandSendData(userSettings) {
             }
             if (results.length > 0 && results[0] !== undefined) {
               const data = results[0].result;
-              sendDataToArrowDL(data);
+              sendDataToDragon(data);
             }
           });
     });  
@@ -171,7 +172,8 @@ function collectDOMandSendData(userSettings) {
 /* Worker Message                */
 /* ***************************** */
 chrome.runtime.onMessage.addListener((message , sender, sendResponse) => {
-    console.log("Message received!", message);
+    if (message && message.dragonAction) return false;
+
 
     if (message === 'get-user-settings') {
 
@@ -206,7 +208,7 @@ chrome.runtime.onMessage.addListener((message , sender, sendResponse) => {
 
         const data = message['send-to-native-app'];
         console.log("Sending message to native app:  " + data);
-        sendDataToArrowDL(data);
+        sendDataToDragon(data);
 
     }
 
@@ -216,20 +218,17 @@ chrome.runtime.onMessage.addListener((message , sender, sendResponse) => {
 /* ***************************** */
 /* Native Message                */
 /* ***************************** */
-function sendDataToArrowDL(data) {
-  const message = {"text": "launch " + data};
-  chrome.runtime.sendNativeMessage(application, message, (response) => {
-      if (chrome.runtime.lastError) {
-        console.log(chrome.runtime.lastError.message);
-        console.log(`Error: ${response}`);
-      }
-
-      if (response === undefined) {
-        console.log(`Error: ${response}`);
-      } else {
-        console.log("Received response from native app:  " + response.text);    
-      }
-    });
+function sendDataToDragon(data) {
+  if (String(data).includes("[LINKS]") || String(data).includes("[MEDIA]")) {
+    DragonIntegration.collect(String(data)).catch(() => DragonIntegration.noteFailure("Cannot open the link collector in Dragon."));
+    return;
+  }
+  const urls = [...new Set(String(data).match(/https?:\/\/[^\s<>"']+/g) || [])].slice(0, 50);
+  if (!urls.length) { DragonIntegration.open().catch(() => {}); return; }
+  for (const url of urls) {
+    DragonIntegration.sendLink(url)
+      .catch(() => DragonIntegration.noteFailure("Cannot send the link. Check the Dragon connection."));
+  }
 }
 
 /* ***************************** */

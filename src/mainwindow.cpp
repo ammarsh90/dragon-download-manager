@@ -19,6 +19,8 @@
 #include "about.h"
 
 #include "dialogs/downloadprogressdialog.h"
+#include "ipc/browserbridge.h"
+#include <Core/JobFile>
 #include <Constants>
 #include <Core/AbstractJob>
 #include <Core/Scheduler>
@@ -205,6 +207,12 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent)
     Theme::applyTheme(m_settings->theme());
 
     setupDownloadInterface();
+    m_browserBridge = new BrowserBridge(m_scheduler, m_settings, this);
+    connect(m_browserBridge, &BrowserBridge::downloadReceived, this, &MainWindow::receiveBrowserDownload, Qt::QueuedConnection);
+    connect(m_browserBridge, &BrowserBridge::collectionReceived, this, [this](const QString &text) {
+        m_systemTray->showParentWidget();
+        addContent(text);
+    }, Qt::QueuedConnection);
 
     ui->splitter->setStretchFactor(0, 1);
     ui->splitter->setStretchFactor(1, 0);
@@ -781,6 +789,10 @@ void MainWindow::handleMessage(const QString &message)
 {
     // qDebug() << Q_FUNC_INFO << message;
     const QString cleaned = InterProcessCommunication::clean(message);
+    if (cleaned.isEmpty() || InterProcessCommunication::isCommandOpenManager(cleaned)) {
+        m_systemTray->showParentWidget();
+        return;
+    }
     if (!cleaned.isEmpty()) {
 
         if (InterProcessCommunication::isSingleUrl(cleaned)) {
@@ -819,7 +831,7 @@ void MainWindow::handleMessage(const QString &message)
             // Rem: on Windows, it's not possible for an application
             // to raise its main window itself, by design.
             // See QWidget::activateWindow() doc, section "behavior under windows"
-            activateWindow();
+            m_systemTray->showParentWidget();
 
         } else if(InterProcessCommunication::isCommandShowPreferences(cleaned)) {
             showPreferences();

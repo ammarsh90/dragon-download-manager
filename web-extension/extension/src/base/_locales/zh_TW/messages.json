@@ -1,14 +1,12 @@
 {
   "extensionName": {
-    "message": "ArrowDL - Arrow 下載器",
+    "message": "Dragon Browser Integration",
     "description": "Name of the extension, displayed in the web store. Should not exceed 45 characters."
   },
   "extensionDescription": {
-    "message": "輕易地從任何網站下載圖片、Torrent、影片以及音樂",
+    "message": "Capture direct downloads with Dragon Download Manager, with manual link sending and browser fallback.",
     "description": "Description of the extension, displayed in the web store. Should not exceed 132 characters."
   },
-
-
   "contextMenuSavePage": {
     "message": "儲存頁面",
     "description": "Title of the context menu for Save page"
@@ -45,8 +43,6 @@
     "message": "儲存啟動器",
     "description": "Title of the context menu for Save launcher"
   },
-
-
   "popupDownload": {
     "message": "下載…",
     "description": "Title of the context menu for Download..."
@@ -68,8 +64,8 @@
     "description": "Title of the context menu for Download content (paused)"
   },
   "popupOpen": {
-    "message": "開啟 ArrowDL",
-    "description": "Title of the context menu for Open ArrowDL"
+    "message": "開啟 Dragon Download Manager",
+    "description": "Title of the context menu for Open Dragon Download Manager"
   },
   "popupPreferences": {
     "message": "偏好設定…",
@@ -80,10 +76,9 @@
     "description": "Title of the context menu for Options..."
   },
   "popupVisitWebsite": {
-    "message": "前往 ArrowDL 網站",
-    "description": "Title of the context menu for Visit ArrowDL website"
+    "message": "前往 Dragon Download Manager 網站",
+    "description": "Title of the context menu for Visit Dragon Download Manager website"
   },
-
   "popupError": {
     "message": "錯誤",
     "description": "Title of Error"
@@ -104,8 +99,6 @@
     "message": "隱身模式禁用<br />下載功能",
     "description": "Remark message 1"
   },
-
-
   "optionsMainTitle": {
     "message": "選項",
     "description": "Title of Options"
@@ -151,19 +144,18 @@
     "description": "Tells the user how to install the application."
   },
   "optionsInstallMessageLink": {
-    "message": "前往 ArrowDL 網站",
+    "message": "前往 Dragon Download Manager 網站",
     "description": "Link to the application URL."
   },
   "optionsRefresh": {
     "message": "重新整理資訊 $SYMBOL$",
     "description": "Title of Refresh information",
     "placeholders": {
-      "symbol" : {
-        "content" : "$1"
+      "symbol": {
+        "content": "$1"
       }
     }
   },
-
   "optionsStatus": {
     "message": "狀態：",
     "description": "Title of Status"

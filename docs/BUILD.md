@@ -30,3 +30,11 @@ The 1.1.1 release had focused download and resume checks. Those checks do not es
 ### 1.2.1 interface update
 
 The Windows executable compiled and linked successfully. Light and dark progress windows, expanded details, the compact add form and main window were rendered for visual review. No new behavioral tests were run. Tray behavior is implemented with an availability guard and a separate explicit Exit action.
+
+### 1.3 browser integration
+
+Python 3 packages the browser assets as part of the default CMake build (BUILD_LAUNCHER=ON). It builds DragonBrowserHost and both extension variants. Chromium's committed public manifest key fixes the unpacked extension ID and must stay in sync with the native host's allowed_origins. No private signing key is included. Firefox output is an unsigned development ZIP, not a signed release add-on.
+
+The old launcher and old locale names are removed from staged packages. Registration is prepared in NSIS (HKLM) and register-browser.ps1 (HKCU); building the installer does not install or register anything on the developer machine.
+
+The 1.3 Windows app and DragonBrowserHost compiled and linked successfully. JavaScript syntax, JSON parsing, native-host origin identity and PowerShell script parsing passed static checks. The desktop browser-setup and received-file dialogs were rendered for visual review. No behavioral browser or network tests were run.

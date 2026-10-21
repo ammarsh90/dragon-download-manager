@@ -1,7 +1,9 @@
 {
-  "name": "com.arrowdl.extension",
-  "description": "ArrowDL Launcher Host for Native Messaging",
-  "path": "/ABSOLUTE/PATH/TO/APP/DIRECTORY/launcher",
+  "name": "net.mobile_dragon.download_manager",
+  "description": "Dragon Download Manager browser connection",
+  "path": "/opt/dragon-download-manager/DragonBrowserHost",
   "type": "stdio",
-  "allowed_origins": [ "chrome-extension://modofbhnhlagjmejdbalnijgncppjeio/" ]
+  "allowed_origins": [
+    "chrome-extension://ipaiobelboggkilddbggbfgfocefefkm/"
+  ]
 }

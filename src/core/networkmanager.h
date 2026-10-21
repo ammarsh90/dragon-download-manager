@@ -17,6 +17,7 @@
 #define CORE_NETWORK_MANAGER_H
 
 #include <QtCore/QObject>
+#include <QtCore/QJsonArray>
 #include <QtCore/QByteArray>
 #include <QtCore/QString>
 
@@ -38,6 +39,7 @@ public:
 
     QNetworkReply* get(const QUrl &url, const QString &referer = {}, qint64 rangeStart = 0, const QByteArray &validator = {}, qint64 rangeEnd = -1);
 
+    void setBrowserContext(const QUrl &url, const QString &userAgent, const QJsonArray &cookies);
     static QStringList proxyTypeNames();
 
 private slots:
@@ -49,6 +51,7 @@ private:
     /* Network parameters (SSL, Proxy, UserAgent...) */
     QNetworkAccessManager *m_networkAccessManager = nullptr;
     Settings *m_settings = nullptr;
+    QString m_browserUserAgent;
 
     void setNetworkSettings(Settings *settings);
 };

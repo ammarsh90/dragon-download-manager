@@ -25,6 +25,9 @@
 #include <QtCore/QDebug>
 #include <QtCore/QByteArray>
 #include <QtCore/QFile>
+#include <QtCore/QSaveFile>
+#include <QtCore/QFileInfo>
+#include <QtCore/QDir>
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
@@ -192,6 +195,7 @@ static inline AbstractJob* readJob(const QJsonObject &json, Scheduler *scheduler
     job->setMaxConnections(json["maxConnections"].toInt(8));
     if (auto *file = qobject_cast<JobFile *>(job)) file->setSpeedLimit(json["speedLimitKiB"].toInt());
     job->setLog(json["log"].toString());
+    job->setProperty("browserRequestId", json["browserRequestId"].toString());
 
     return job;
 }
@@ -222,6 +226,7 @@ static inline void writeJob(const AbstractJob *job, QJsonObject &json)
     json["maxConnections"] = job->maxConnections();
     if (const auto *file = qobject_cast<const JobFile *>(job)) json["speedLimitKiB"] = file->speedLimit();
     json["log"] = job->log();
+    json["browserRequestId"] = job->property("browserRequestId").toString();
 }
 
 /******************************************************************************
@@ -271,17 +276,13 @@ void Session::read(QList<AbstractJob *> &jobs,
     readList(jobs, loadDoc.object(), scheduler);
 }
 
-void Session::write(const QList<AbstractJob *> &jobs, const QString &filename)
+bool Session::write(const QList<AbstractJob *> &jobs, const QString &filename)
 {
-    QFile file(filename);
-
-    if (!file.open(QIODevice::WriteOnly)) {
-        qWarning("Couldn't open save file.");
-        return;
-    }
-
+    if (filename.isEmpty() || !QDir().mkpath(QFileInfo(filename).absolutePath())) return false;
+    QSaveFile file(filename);
+    if (!file.open(QIODevice::WriteOnly)) return false;
     QJsonObject json;
     writeList(jobs, json);
-    QJsonDocument saveDoc(json);
-    file.write( saveDoc.toJson() );
+    const auto data = QJsonDocument(json).toJson();
+    return file.write(data) == data.size() && file.commit();
 }

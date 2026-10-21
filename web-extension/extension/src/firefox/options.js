@@ -1,7 +1,7 @@
 "use strict";
 
-const application = "com.arrowdl.extension";
-const website_download_link = "https://www.arrow-dl.com/";
+const application = "net.mobile_dragon.download_manager";
+const website_download_link = "https://mobile-dragon.net/";
 
 /* ***************************** */
 /* Options                       */

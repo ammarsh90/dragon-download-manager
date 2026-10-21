@@ -14,6 +14,10 @@
  */
 
 #include "networkmanager.h"
+#include <QtNetwork/QNetworkCookieJar>
+#include <QtNetwork/QNetworkCookie>
+#include <QtCore/QJsonObject>
+#include <QtCore/QDateTime>
 
 #include <Constants>
 #include <Core/Settings>
@@ -46,6 +50,7 @@ void NetworkManager::setSettings(Settings *settings)
     m_settings = settings;
     if (m_settings) {
         connect(m_settings, SIGNAL(changed()), this, SLOT(onSettingsChanged()));
+        onSettingsChanged();
     }
 }
 
@@ -120,7 +125,7 @@ QNetworkReply* NetworkManager::get(const QUrl &url, const QString &referer, qint
 
     // User-Agent
     auto httpUserAgent = m_settings ? m_settings->httpUserAgent() : QLatin1String("");
-    request.setHeader(QNetworkRequest::UserAgentHeader, httpUserAgent);
+    request.setHeader(QNetworkRequest::UserAgentHeader, m_browserUserAgent.isEmpty() ? httpUserAgent : m_browserUserAgent);
 
     // Referer
     if (!referer.isEmpty()) {
@@ -150,4 +155,32 @@ void NetworkManager::onMetaDataChanged()
 
 void NetworkManager::onRedirected(const QUrl &/*url*/)
 {
+}
+
+void NetworkManager::setBrowserContext(const QUrl &url, const QString &userAgent, const QJsonArray &cookies)
+{
+    if (userAgent.size() <= 1024 && !userAgent.contains('\r') && !userAgent.contains('\n')) m_browserUserAgent = userAgent;
+    QList<QNetworkCookie> accepted;
+    for (const auto &value : cookies) {
+        if (accepted.size() >= 200) break;
+        const auto item = value.toObject();
+        const QString domain = item["domain"].toString().toLower();
+        QString bareDomain = domain;
+        if (bareDomain.startsWith('.')) bareDomain.remove(0, 1);
+        if (bareDomain.isEmpty() || (url.host().toLower() != bareDomain && !url.host().toLower().endsWith("." + bareDomain))) continue;
+        const auto name = item["name"].toString().toUtf8();
+        const auto contents = item["value"].toString().toUtf8();
+        if (name.isEmpty() || name.contains('\r') || name.contains('\n') || contents.contains('\r') || contents.contains('\n')) continue;
+        QNetworkCookie cookie(name, contents);
+        if (!item["hostOnly"].toBool()) cookie.setDomain(domain);
+        const auto path = item["path"].toString();
+        cookie.setPath(path.startsWith('/') ? path : QStringLiteral("/"));
+        cookie.setSecure(item["secure"].toBool());
+        cookie.setHttpOnly(item["httpOnly"].toBool());
+        const double expiration = item["expirationDate"].toDouble();
+        if (!item["session"].toBool(true) && expiration > 0 && expiration < 253402300800.0)
+            cookie.setExpirationDate(QDateTime::fromSecsSinceEpoch(qint64(expiration), Qt::UTC));
+        accepted.append(cookie);
+    }
+    m_networkAccessManager->cookieJar()->setCookiesFromUrl(accepted, url);
 }

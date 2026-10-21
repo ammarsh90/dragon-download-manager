@@ -32,7 +32,7 @@ static QString languageDirectory()
 
 static QString translationFileName(const QString &localeName)
 {
-    return QString("%0/arrowdl_%1.qm").arg(languageDirectory(), localeName);
+    return QString("%0/dragon_%1.qm").arg(languageDirectory(), localeName);
 }
 
 static void populateLocales()
@@ -45,7 +45,7 @@ static void populateLocales()
     QList<QLocale> locales;
     for (const auto &dotQM : allDotQMs) {
         auto code = dotQM;
-        code.replace("arrowdl_", "");
+        code.replace("dragon_", "");
         code.replace(".qm", "");
         locales << QLocale(code); // Ex: "en_US"
     }

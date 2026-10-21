@@ -1,14 +1,12 @@
 {
   "extensionName": {
-    "message": "ArrowDL - Arrow Downloader",
+    "message": "Dragon Browser Integration",
     "description": "Name of the extension, displayed in the web store. Should not exceed 45 characters."
   },
   "extensionDescription": {
-    "message": "A képek, torrentek, videók és zene letöltésének egyszerű módja bármely webhelyről",
+    "message": "Capture direct downloads with Dragon Download Manager, with manual link sending and browser fallback.",
     "description": "Description of the extension, displayed in the web store. Should not exceed 132 characters."
   },
-
-
   "contextMenuSavePage": {
     "message": "Oldal mentése",
     "description": "Title of the context menu for Save page"
@@ -45,8 +43,6 @@
     "message": "Futtatható mentése",
     "description": "Title of the context menu for Save launcher"
   },
-
-
   "popupDownload": {
     "message": "Letöltés...",
     "description": "Title of the context menu for Download..."
@@ -68,8 +64,8 @@
     "description": "Title of the context menu for Download content (paused)"
   },
   "popupOpen": {
-    "message": "ArrowDL megnyitása!",
-    "description": "Title of the context menu for Open ArrowDL"
+    "message": "Dragon Download Manager megnyitása!",
+    "description": "Title of the context menu for Open Dragon Download Manager"
   },
   "popupPreferences": {
     "message": "Tulajdonságok...",
@@ -80,10 +76,9 @@
     "description": "Title of the context menu for Options..."
   },
   "popupVisitWebsite": {
-    "message": "ArrowDL weboldal felkeresése",
-    "description": "Title of the context menu for Visit ArrowDL website"
+    "message": "Dragon Download Manager weboldal felkeresése",
+    "description": "Title of the context menu for Visit Dragon Download Manager website"
   },
-
   "popupError": {
     "message": "Hiba",
     "description": "Title of Error"
@@ -104,8 +99,6 @@
     "message": "Inkognitó mód kikapcsolva <br /> letöltési tuljdonságok",
     "description": "Remark message 1"
   },
-
-
   "optionsMainTitle": {
     "message": "Opciók",
     "description": "Title of Options"
@@ -151,19 +144,18 @@
     "description": "Tells the user how to install the application."
   },
   "optionsInstallMessageLink": {
-    "message": "ArrowDL weboldal felkeresése",
+    "message": "Dragon Download Manager weboldal felkeresése",
     "description": "Link to the application URL."
   },
   "optionsRefresh": {
     "message": "Információ frissítése $SYMBOL$",
     "description": "Title of Refresh information",
     "placeholders": {
-      "symbol" : {
-        "content" : "$1"
+      "symbol": {
+        "content": "$1"
       }
     }
   },
-
   "optionsStatus": {
     "message": "Állapot:",
     "description": "Title of Status"

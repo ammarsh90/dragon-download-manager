@@ -26,6 +26,9 @@ class Settings;
 class UpdateChecker;
 class SystemTray;
 class DownloadProgressDialog;
+class JobFile;
+class BrowserBridge;
+#include <QtCore/QQueue>
 class QTreeWidget;
 class QLineEdit;
 #include <QtCore/QHash>
@@ -132,6 +135,12 @@ private:
     Settings *m_settings = nullptr;
     QLabel *m_statusBarLabel = nullptr;
     QStackedWidget *m_downloadPages = nullptr;
+    BrowserBridge *m_browserBridge = nullptr;
+    QQueue<QPointer<JobFile>> m_browserForms;
+    bool m_browserFormOpen = false;
+    void receiveBrowserDownload(JobFile *job, bool showDialog);
+    void openNextBrowserForm();
+    void showBrowserIntegration();
     QTreeWidget *m_downloadCategories = nullptr;
     QLineEdit *m_downloadSearch = nullptr;
     QHash<AbstractJob *, QPointer<DownloadProgressDialog>> m_progressWindows;

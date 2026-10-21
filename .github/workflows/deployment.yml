@@ -296,8 +296,8 @@ jobs:
     #   shell: bash
     #   run: cd "${{env.QT_ROOT_DIR}}/../../" && ls -alR
     #   # env.QT_ROOT_DIR
-    #   #   "/home/runner/work/ArrowDL/qt/Qt/6.3.1/gcc_64"
-    #   #   "D:\a\ArrowDL\qt\Qt\6.3.1\mingw_64"
+    #   #   "/home/runner/work/DragonDownloadManager/qt/Qt/6.3.1/gcc_64"
+    #   #   "D:\a\DragonDownloadManager\qt\Qt\6.3.1\mingw_64"
     #
     - name: Find OpenSSL in Qt6
       # The thing is that "env.QT_ROOT_DIR" is defined only at runtime, *after* install-qt-action has run.
@@ -451,7 +451,7 @@ jobs:
       run: |
            echo "Before:"
            ls -al
-           strip "launcher.exe"
+           strip "DragonBrowserHost.exe"
            strip "DragonDownloadManager.exe"
            echo ""
            echo "After:"
@@ -465,7 +465,7 @@ jobs:
       run: |
            echo "Before:"
            ls -al
-           strip "launcher"
+           strip "DragonBrowserHost"
            strip "DragonDownloadManager"
            echo ""
            echo "After:"
@@ -479,7 +479,7 @@ jobs:
       run: |
            echo "Run 'ldd' to find missing Qt libraries or missing plugins."
            echo "Tips: If missing, add directive install(FILE [..]) in 'src/CMakeLists.txt'."
-           ldd --verbose ./launcher
+           ldd --verbose ./DragonBrowserHost
            ldd --verbose ./DragonDownloadManager
            ls -R
 

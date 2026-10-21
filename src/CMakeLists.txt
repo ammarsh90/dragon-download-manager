@@ -76,25 +76,25 @@ target_compile_definitions(${TARGET_NAME}
 
 qt_add_translations(${TARGET_NAME}
     TS_FILES
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_ar_EG.ts  # Arabic (Egypt)
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_de_DE.ts  # German
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_en_US.ts  # English (default)
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_es_BO.ts  # Spanish (Bolivia)
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_es_ES.ts  # Spanish (Spain)
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_es_US.ts  # Spanish (United States)
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_fr_FR.ts  # French
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_hu_HU.ts  # Hungarian
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_it_IT.ts  # Italian
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_ja_JP.ts  # Japanese
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_ko_KR.ts  # Korean
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_nl_NL.ts  # Dutch
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_pl_PL.ts  # Polish
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_pt_BR.ts  # Portuguese (Brazil)
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_pt_PT.ts  # Portuguese (Portugal)
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_ru_RU.ts  # Russian
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_vi_VN.ts  # Vietnamese
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_zh_CN.ts  # Chinese (Simplified & Traditional)
-        ${CMAKE_SOURCE_DIR}/src/locale/arrowdl_zh_TW.ts  # Chinese (Taiwan)
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_ar_EG.ts  # Arabic (Egypt)
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_de_DE.ts  # German
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_en_US.ts  # English (default)
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_es_BO.ts  # Spanish (Bolivia)
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_es_ES.ts  # Spanish (Spain)
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_es_US.ts  # Spanish (United States)
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_fr_FR.ts  # French
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_hu_HU.ts  # Hungarian
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_it_IT.ts  # Italian
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_ja_JP.ts  # Japanese
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_ko_KR.ts  # Korean
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_nl_NL.ts  # Dutch
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_pl_PL.ts  # Polish
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_pt_BR.ts  # Portuguese (Brazil)
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_pt_PT.ts  # Portuguese (Portugal)
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_ru_RU.ts  # Russian
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_vi_VN.ts  # Vietnamese
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_zh_CN.ts  # Chinese (Simplified & Traditional)
+        ${CMAKE_SOURCE_DIR}/src/locale/dragon_zh_TW.ts  # Chinese (Taiwan)
     QM_FILES_OUTPUT_VARIABLE
         qm_files
 )

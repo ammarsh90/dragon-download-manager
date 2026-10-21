@@ -16,8 +16,10 @@
 #pragma once
 #include <Core/AbstractJob>
 #include <QtCore/QFile>
+#include <QtCore/QJsonArray>
 #include "segmentedtransfer.h"
 class Scheduler;
+class NetworkManager;
 class ResourceItem;
 
 class JobFile : public AbstractJob
@@ -32,11 +34,13 @@ public:
     void rename(const QString &newName) override;
     QList<SegmentedTransfer::Part> parts() const;
     bool supportsResume() const;
+    void setBrowserContext(const QUrl &url, const QString &agent, const QJsonArray &cookies);
     void setSpeedLimit(int kibibytes) { m_transfer->setSpeedLimit(kibibytes); }
     int speedLimit() const { return m_transfer->speedLimit(); }
     void setOverwriteApproved(bool approved) { m_overwriteApproved = approved; }
 private:
     Scheduler *m_scheduler;
+    NetworkManager *m_contextNetwork;
     SegmentedTransfer *m_transfer;
     QFile m_assembly;
     qint64 m_sessionStart = -1;

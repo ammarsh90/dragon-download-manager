@@ -1,69 +1,10 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-        <title>Popup</title>
-        <link rel="stylesheet" href="style/common.css" type="text/css"/>
-        <link rel="stylesheet" href="style/popup.css" type="text/css"/>
-        <script defer type="text/javascript" src="/popup.js"> </script>
-    </head>
-    <body>
-        <ul>
-            <li id="button-start">
-                <img srcset="style/start_16x16.png, style/start_16x16@2x.png 2x" />
-                <span id="button-download">Download...</span>
-            </li>
-            <li id="button-immediate-download">
-                <img srcset="style/start_16x16.png, style/start_16x16@2x.png 2x" />
-                <span id="button-immediate-download-label">Download media</span>
-            </li>
-            <li class="separator">
-                <hr/>
-            </li>
-            <li id="button-manager">
-                <img srcset="style/manager_16x16.png, style/manager_16x16@2x.png 2x" />
-                <span id="button-open">Open ArrowDL</span>
-            </li>
-            <li class="separator">
-                <hr/>
-            </li>
-            <li id="button-preference">
-                <span class="icon icon-settings"/>
-                <span id="button-preferences">Preferences...</span>
-            </li>
-            <li id="button-options-page">
-                <span class="icon icon-settings"/>
-                <span id="button-options">Options...</span>
-            </li>
-            <li class="separator">
-                <hr/>
-            </li>
-            <li id="button-website" class="website">
-                <span><a id="website-link" href="https://www.arrow-dl.com/">Visit ArrowDL website</a></span>
-            </li>
-            <div id="warning-area" style="display:none;">
-                <br/>
-                <div class="alert alert-danger">
-                    <p>
-                    <strong><span id="msg-error">Error</span></strong>
-                    <br />
-                    <span id="msg-error-1">Can't find the application</span>
-                    <br />
-                    <span id="msg-error-2">Open 'Options' to check</span>
-                    </p>
-                </div>
-            </div>
-            <div id="warning-area-incognito" style="display:none;">
-                <br/>
-                <div class="alert alert-warning">
-                    <p>
-                    <strong><span id="msg-remark">Remark</span></strong>
-                    <br />
-                    <span id="msg-remark-1">Incognito Mode disables download features</span>
-                    <br />
-                    (Firefox bug <a id="bug-link" class="alert-warning alert-link" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1329304">#1329304</a>)</p>
-                </div>
-            </div>
-        </ul>
-    </body>
-</html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dragon Browser Integration</title><link rel="stylesheet" href="style/dragon.css"></head>
+<body><main><header><img src="icons/icon48.png" width="40" height="40" alt="Dragon"><div><h1>Dragon</h1><p>Download Manager</p></div><span id="connection" role="status">Checking…</span></header>
+<section><label class="toggle"><input type="checkbox" id="capture">Capture browser downloads</label><p class="hint">Direct HTTP/HTTPS downloads go to Dragon. Unsupported requests stay in your browser.</p>
+<label class="toggle"><input type="checkbox" id="showDialog">Show file information before starting</label>
+<label class="toggle"><input type="checkbox" id="shareCookies">Use this download’s browser session</label><p class="hint">Matching cookies are sent only to the local Dragon application, kept in memory, and never included in the queue file.</p></section>
+<section><label for="excludedHosts">Excluded websites</label><textarea id="excludedHosts" rows="3" placeholder="example.com&#10;downloads.example.org"></textarea><p class="hint">One domain per line; subdomains are included.</p></section>
+<p id="error" role="alert"></p><p id="saved" role="status"></p><footer><button id="save">Save settings</button><button id="open">Open Dragon</button><button id="help">Setup guide</button></footer>
+<details><summary>Connection details</summary><p>Extension ID: <code id="extensionId"></code></p><p>Native host: net.mobile_dragon.download_manager</p><button id="recover">Recover pending transfers</button></details>
+</main><script src="controls.js"></script></body></html>

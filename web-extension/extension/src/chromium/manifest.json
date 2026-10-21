@@ -1,9 +1,9 @@
 {
-  "author": "SetVisible(0!=1)",
+  "author": "Brami Group",
   "background": {
     "service_worker": "background.js"
   },
-  "action": { 
+  "action": {
     "default_icon": {
       "16": "icons/icon16.png",
       "24": "icons/icon24.png",
@@ -12,12 +12,12 @@
       "64": "icons/icon64.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "__MSG_extensionName__",
+    "default_title": "Dragon Download Manager",
     "default_popup": "popup.html"
   },
   "default_locale": "en",
-  "description": "__MSG_extensionDescription__",
-  "homepage_url": "https://www.arrow-dl.com/",
+  "description": "Send downloads to Dragon Download Manager with automatic capture and browser fallback.",
+  "homepage_url": "https://mobile-dragon.net/",
   "icons": {
     "16": "icons/icon16.png",
     "24": "icons/icon24.png",
@@ -27,7 +27,7 @@
     "128": "icons/icon128.png"
   },
   "manifest_version": 3,
-  "name": "__MSG_extensionName__",
+  "name": "Dragon Browser Integration",
   "options_ui": {
     "page": "options.html",
     "browser_style": false
@@ -35,11 +35,20 @@
   "permissions": [
     "activeTab",
     "contextMenus",
+    "cookies",
+    "downloads",
     "nativeMessaging",
     "scripting",
     "storage",
-    "tabs"
+    "tabs",
+    "webRequest"
   ],
-  "short_name": "ArrowDL",
-  "version": "0.0.65536"
+  "short_name": "Dragon",
+  "version": "1.3.0",
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvifEjiLyqERGVPWM+aAnwamWOL3H6HrXLDwyWPJ9NUC+McBjyUZh0/rlqNQ5m+vH9rxySOy8JPThJM0qeKGz1rPY3SZftsSPrSEWmzRy1JWfcIlGRfj+70ec1X29C6sfUvSUiMSEGoGdu7BSTfILbXfzNiD2iAHHt3AyLqN7+LOqEViAWHh3yxRbtw6a3lDJj+wYyV8sUSdXfaDUeUZSZqeasCIy7m1Jjt9/V2cN3lBy0uNHgzaxs3uPPHlVZ4mddVjuwnlo13hWVmDfXetj2J6qX8tmmJx6xuKigkJGmQTG8U/EMVgyzRZdNbFB60WgJrNSfus0IG0bVBZwJXDhtQIDAQAB",
+  "minimum_chrome_version": "105"
 }

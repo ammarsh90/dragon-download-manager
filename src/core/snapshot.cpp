@@ -126,7 +126,7 @@ void Snapshot::saveQueue()
             case AbstractJob::DownloadingMetadata:
             case AbstractJob::Downloading:
             case AbstractJob::Endgame:
-                if (skipPaused) continue;
+                if (skipPaused && job->property("browserRequestId").toString().isEmpty()) continue;
                 break;
 
             case AbstractJob::Completed:
@@ -138,7 +138,7 @@ void Snapshot::saveQueue()
             case AbstractJob::Skipped:
             case AbstractJob::NetworkError:
             case AbstractJob::FileError:
-                if (skipCanceled) continue;
+                if (skipCanceled && job->property("browserRequestId").toString().isEmpty()) continue;
                 break;
             }
             jobs.append(job);

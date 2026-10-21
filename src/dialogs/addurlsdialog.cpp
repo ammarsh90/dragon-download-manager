@@ -39,8 +39,8 @@
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QVBoxLayout>
 
-AddUrlsDialog::AddUrlsDialog(const QString &text, Scheduler *scheduler, Settings *settings, QWidget *parent)
-    : QDialog(parent), m_scheduler(scheduler), m_settings(settings)
+AddUrlsDialog::AddUrlsDialog(const QString &text, Scheduler *scheduler, Settings *settings, QWidget *parent, JobFile *pendingJob)
+    : QDialog(parent), m_pendingJob(pendingJob), m_browserForm(pendingJob != nullptr), m_scheduler(scheduler), m_settings(settings)
 {
     setObjectName("addDownloadDialog");
     setWindowTitle(tr("Download file info"));
@@ -110,6 +110,16 @@ AddUrlsDialog::AddUrlsDialog(const QString &text, Scheduler *scheduler, Settings
         m_metadataTimer->start();
     });
     m_url->setText(text.trimmed().split(QRegularExpression("\\s+"), Qt::SkipEmptyParts).value(0));
+    if (pendingJob) {
+        m_customPath = true;
+        m_saveAs->setText(QDir::toNativeSeparators(pendingJob->localFullFileName()));
+        m_description->setText(pendingJob->resource()->description());
+        m_connections->setCurrentIndex(qMax(0, m_connections->findData(pendingJob->maxConnections())));
+        m_fileInfo->setText(pendingJob->bytesTotal() > 0
+            ? tr("File size: %1").arg(Format::fileSizeToString(pendingJob->bytesTotal())) : tr("Download safely received from your browser."));
+        for (auto *button : buttons->buttons()) if (buttons->standardButton(button) == QDialogButtonBox::Cancel)
+            button->setText(tr("Keep in queue"));
+    }
     updateFields();
     m_url->setFocus();
     m_url->selectAll();
@@ -156,6 +166,7 @@ void AddUrlsDialog::acceptPaused() { submit(false); }
 
 void AddUrlsDialog::submit(bool started)
 {
+    if (m_browserForm && !m_pendingJob) { reject(); return; }
     if (!m_start->isEnabled()) return;
     const QFileInfo destination(m_saveAs->text().trimmed());
 #ifdef Q_OS_WIN
@@ -178,7 +189,7 @@ void AddUrlsDialog::submit(bool started)
     auto target = destination;
     const auto occupied = [&](const QFileInfo &path) {
         for (auto *existing : m_scheduler->jobs()) {
-            if (existing->state() != AbstractJob::Completed && existing->state() != AbstractJob::Skipped
+            if (existing != m_pendingJob && existing->state() != AbstractJob::Completed && existing->state() != AbstractJob::Skipped
                 && QFileInfo(existing->localFullFileName()).absoluteFilePath().compare(
                     path.absoluteFilePath(), Qt::CaseInsensitive) == 0) return existing;
         }
@@ -215,17 +226,20 @@ void AddUrlsDialog::submit(bool started)
         else if (duplicate.clickedButton() != keep) return;
         m_saveAs->setText(QDir::toNativeSeparators(target.absoluteFilePath()));
     }
-    auto *resource = new ResourceItem;
+    auto *resource = m_pendingJob ? m_pendingJob->resource() : new ResourceItem;
     resource->setUrl(downloadUrl().toString(QUrl::FullyEncoded));
     resource->setDestination(target.absolutePath());
     resource->setCustomFileName(target.fileName());
     resource->setDescription(m_description->text().trimmed());
     resource->setMask("*name*");
-    if (m_settings->isHttpReferringPageEnabled()) resource->setReferringPage(m_settings->httpReferringPage());
-    auto *job = new JobFile(m_scheduler, resource);
+    if (!m_browserForm && m_settings->isHttpReferringPageEnabled()) resource->setReferringPage(m_settings->httpReferringPage());
+    auto *job = m_pendingJob ? m_pendingJob.data() : new JobFile(m_scheduler, resource);
     job->setMaxConnections(m_connections->currentData().toInt());
     job->setOverwriteApproved(overwrite);
-    m_scheduler->append(QList<AbstractJob *>{job}, started);
+    if (m_pendingJob) {
+        m_scheduler->activateSnapshot();
+        if (started) m_scheduler->resume(job);
+    } else m_scheduler->append(QList<AbstractJob *>{job}, started);
     emit downloadAdded(job, started);
     QSettings().setValue("Downloads/Folder", destination.absolutePath());
     QDialog::accept();
@@ -238,6 +252,7 @@ AddUrlsDialog::~AddUrlsDialog()
 
 void AddUrlsDialog::inspectLink()
 {
+    if (m_browserForm) return;
     const auto url = downloadUrl();
     if (!url.isValid() || url.host().isEmpty() || (url.scheme() != "http" && url.scheme() != "https")) return;
     m_fileInfo->setText(tr("Checking file information..."));
